@@ -1,0 +1,62 @@
+{
+    "Prize": {
+        "Incepator": {
+            "Jug": {
+                "description": "Identifică o porțiune mai lată și mai evidentă a prizei, apoi poziționează-ți palma pe acea zonă pentru o aderență solidă.",
+                "translation": "Mânere mari"
+            },
+            "Sloper": {
+                "description": "Caută o zonă cu o textură fină și ajustează-ți poziția corpului astfel încât să simți că ai control asupra suprafeței.",
+                "translation": "Suprafață netedă"
+            },
+            "Cubby": {
+                "description": "Explorează cu degetele și mâna forma cutiei și ajustează-ți mâna în funcție de acea formă pentru o potrivire sigură.",
+                "translation": "Cutie"
+            },
+            "Volume": {
+                "description": "Simte suprafața mare și stabilă a volumului cu vârful degetelor și plasează-ți mâna în acea zonă sigură.",
+                "translation": "Volum"
+            }
+        },
+        "Intermediar": {
+            "Edge": {
+                "description": "Identifică o zonă cu o margine evidentă și ajustează-ți degetul în funcție de acea margine pentru o prindere precisă.",
+                "translation": "Margine"
+            },
+            "Crimp": {
+                "description": "Găsește o zonă îngustă și poziționează-ți degetul în așa fel încât să simți că ai control asupra suprafeței subțiri.",
+                "translation": "Prindere subțire"
+            },
+            "Pinch": {
+                "description": "Identifică o zonă în care poți încleșta degetele și ajustează-ți mâna pentru a obține o prindere stabilă.",
+                "translation": "Prindere între degete"
+            },
+            "Volume": {
+                "description": "Utilizează vârful degetelor pentru a explora conturul volumului și plasează-ți mâna pe suprafața acestuia.",
+                "translation": "Volum"
+            },
+            "Undercling": {
+                "description": "Descoperă cu degetul o zonă sub prindere și ajustează poziția mâinii pentru a obține o aderență sigură.",
+                "translation": "Prindere sub bară"
+            }
+        },
+        "Avansat": {
+            "Gaston": {
+                "description": "Simte direcția în care se îndreaptă prinderea. Împinge ferm și ajustează-ți mâna pentru a gestiona direcția opusă.",
+                "translation": "Prindere cu direcție opusă"
+            },
+            "Pocket": {
+                "description": "Identifică o gaură cu vârful degetului. Explorează dimensiunea și adâncimea acelei găuri pentru a te adapta.",
+                "translation": "Gaură"
+            },
+            "Sloper": {
+                "description": "Abordează suprafața netedă cu atenție, bazându-te pe senzațiile tactile pentru a-ți regla poziția pe teren înclinat.",
+                "translation": "Suprafață netedă"
+            },
+            "Volume": {
+                "description": "Explorează geometria volumului cu degetele și ajustează-ți mâna în funcție de formă și unghiuri.",
+                "translation": "Volum"
+            }
+        }
+    }
+}

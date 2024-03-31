@@ -1,0 +1,42 @@
+Prize pentru Începători:
+
+Pentru Priza pentru Începători:
+
+Jug (Mânere mari): Identifică o porțiune mai lată și mai evidentă a prizei, apoi poziționează-ți palma pe acea zonă pentru o aderență solidă.
+
+Sloper (Suprafață netedă): Caută o zonă cu o textură fină și ajustează-ți poziția corpului astfel încât să simți că ai control asupra suprafeței.
+
+Cubby (Cutie): Explorează cu degetele și mâna forma cutiei și ajustează-ți mâna în funcție de acea formă pentru o potrivire sigură.
+
+Volume (Volum): Simte suprafața mare și stabilă a volumului cu vârful degetelor și plasează-ți mâna în acea zonă sigură.
+
+Pentru Priza pentru Intermediar:
+
+Edge (Margine): Identifică o zonă cu o margine evidentă și ajustează-ți degetul în funcție de acea margine pentru o prindere precisă.
+
+Crimp (Prindere subțire): Găsește o zonă îngustă și poziționează-ți degetul în așa fel încât să simți că ai control asupra suprafeței subțiri.
+
+Pinch (Prindere între degete): Identifică o zonă în care poți încleșta degetele și ajustează-ți mâna pentru a obține o prindere stabilă.
+
+Volume (Volum): Utilizează vârful degetelor pentru a explora conturul volumului și plasează-ți mâna pe suprafața acestuia.
+
+Undercling (Prindere sub bară): Descoperă cu degetul o zonă sub prindere și ajustează poziția mâinii pentru a obține o aderență sigură.
+
+Pentru Priza pentru Avansat:
+
+Gaston (Prindere cu direcție opusă): Simte direcția în care se îndreaptă prinderea. Împinge ferm și ajustează-ți mâna pentru a gestiona direcția opusă.
+
+Pocket (Gaură): Identifică o gaură cu vârful degetului. Explorează dimensiunea și adâncimea acelei găuri pentru a te adapta.
+
+Tufa (Tuf): Simte suprafața cu textură și proeminențele tufei. Ajustează-ți mâna pentru a prinde cu încredere acea formă complexă.
+
+Sloper (Suprafață netedă): Abordează suprafața netedă cu atenție, bazându-te pe senzațiile tactile pentru a-ți regla poziția pe teren înclinat.
+
+Volume (Volum): Explorează geometria volumului cu degetele și ajustează-ți mâna în funcție de formă și unghiuri.
+
+// on hold hover show modal detailing the hold
+// 3 difficulty holds (East, Moderate, Hard) - split them in table
+
+
+
+

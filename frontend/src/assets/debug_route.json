@@ -1,0 +1,327 @@
+{
+    "routeName": "",
+    "matrix": [
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Avansat",
+                "type": "Pinch",
+                "size": "S",
+                "hold_id": "texture_0",
+                "component": "TableHolds"
+            },
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Avansat",
+                "type": "Pinch",
+                "size": "S",
+                "hold_id": "texture_0",
+                "component": "TableHolds"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Avansat",
+                "type": "Pinch",
+                "size": "S",
+                "hold_id": "texture_0",
+                "component": "TableHolds"
+            },
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Avansat",
+                "type": "Pinch",
+                "size": "S",
+                "hold_id": "texture_0",
+                "component": "TableHolds"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Avansat",
+                "type": "Pinch",
+                "size": "S",
+                "hold_id": "texture_0",
+                "component": "TableHolds"
+            },
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Avansat",
+                "type": "Pinch",
+                "size": "S",
+                "hold_id": "texture_0",
+                "component": "TableHolds"
+            },
+            {
+                "image_format": "png",
+                "difficulty": "Incepator",
+                "type": "Sloper",
+                "size": "M",
+                "hold_id": "texture_1",
+                "component": "TableHolds"
+            },
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Incepator",
+                "type": "Sloper",
+                "size": "M",
+                "hold_id": "texture_1",
+                "component": "TableHolds"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Incepator",
+                "type": "Sloper",
+                "size": "M",
+                "hold_id": "texture_1",
+                "component": "TableHolds"
+            },
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Incepator",
+                "type": "Sloper",
+                "size": "M",
+                "hold_id": "texture_1",
+                "component": "TableHolds"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Incepator",
+                "type": "Sloper",
+                "size": "M",
+                "hold_id": "texture_1",
+                "component": "TableHolds"
+            },
+            null,
+            {
+                "image_format": "png",
+                "difficulty": "Incepator",
+                "type": "Sloper",
+                "size": "M",
+                "hold_id": "texture_1",
+                "component": "TableHolds"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ]
+    ],
+    "positions": [
+        {
+            "hands": {
+                "leftMember": {
+                    "x": 7,
+                    "y": 3
+                },
+                "rightMember": {
+                    "x": 7,
+                    "y": 5
+                }
+            },
+            "feet": {
+                "leftMember": {
+                    "x": 9,
+                    "y": 3
+                },
+                "rightMember": {
+                    "x": 9,
+                    "y": 5
+                }
+            }
+        },
+        {
+            "hands": {
+                "leftMember": {
+                    "x": 6,
+                    "y": 5
+                },
+                "rightMember": {
+                    "x": 6,
+                    "y": 7
+                }
+            },
+            "feet": {
+                "leftMember": {
+                    "x": 8,
+                    "y": 5
+                },
+                "rightMember": {
+                    "x": 7,
+                    "y": 6
+                }
+            }
+        },
+        {
+            "hands": {
+                "leftMember": {
+                    "x": 5,
+                    "y": 6
+                },
+                "rightMember": {
+                    "x": 5,
+                    "y": 8
+                }
+            },
+            "feet": {
+                "leftMember": {
+                    "x": 8,
+                    "y": 7
+                },
+                "rightMember": {
+                    "x": 7,
+                    "y": 8
+                }
+            }
+        }
+    ]
+}

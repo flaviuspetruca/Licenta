@@ -1,0 +1,63 @@
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.App {
+    display: flex;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.image-list {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.main-container {
+    @apply flex flex-row justify-center items-center gap-10 p-20 w-full h-full max-h-128;
+}
+
+.table-holds-container {
+    @apply flex flex-col items-center bg-slate-300 h-full rounded-4xl p-7 gap-3;
+}
+
+.reset-btn {
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 50px;
+    width: 100px;
+    border-radius: 10px;
+    background-color: #f44336;
+    border: 1px solid #fb2414;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 50px;
+    width: 100px;
+    border-radius: 10px;
+    background-color: #ffb116fb;
+    border: 1px solid #dba102;
+    color: #000000;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+}

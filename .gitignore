@@ -128,3 +128,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+backend/src/assets/audio/*
+
+backend/text2speech/__pycache__
+
+*.psd

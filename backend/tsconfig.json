@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "skipLibCheck": true,
+        "target": "es6",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "outDir": "./dist",
+        "rootDir": "src",
+        "sourceMap": true
+    },
+    "include": ["src/**/*", "src/configs/*"],
+    "exclude": ["node_modules"]
+}

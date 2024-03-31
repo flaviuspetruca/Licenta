@@ -1,0 +1,79 @@
+/* MatrixTable.css */
+
+.table-container {
+    @apply flex flex-col p-10 gap-5 h-full max-h-128;
+}
+
+.table {
+    @apply border-collapse table-fixed;
+}
+
+.table-h {
+    @apply text-4xl font-bold text-white bg-black rounded-lg p-5 max-w-max shadow-lg;
+}
+
+.td {
+    @apply p-0 h-14 w-16  max-h-14 max-w-16 min-h-14 min-w-16 text-center border border-solid border-green-600;
+}
+
+.hold-image {
+    @apply h-14 w-16 max-h-14 max-w-16;
+}
+
+.selected-hold-member-image {
+    @apply h-6 w-7 max-h-6 max-w-7 absolute right-0 top-0;
+}
+
+.selected-hold {
+    background-color: #d4f8d6 !important;
+}
+
+.highlighted {
+    background-color: #f8d4d4 !important;
+}
+
+.selected-hold-previous-position-cell {
+    background-color: #f2af44 !important;
+}
+
+.previous-position-cell {
+    background-color: #fbf6ca !important;
+}
+
+.submit {
+    @apply w-48 h-16 inline-block px-5 text-lg font-bold text-center no-underline rounded-md text-white transition duration-300 ease-in-out cursor-pointer bg-purple-600 hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70;
+}
+
+.action-button {
+    @apply font-bold py-2 px-4 rounded-full shadow-md max-w-max max-h-min disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.action-button-blue {
+    @apply action-button bg-blue-500 hover:bg-blue-600 text-white;
+}
+
+.action-button-dark-blue {
+    @apply action-button bg-blue-700 hover:bg-blue-800 text-white;
+}
+
+.action-button-orange {
+    @apply action-button bg-orange-400 hover:bg-orange-500 text-white;
+}
+
+.action-button-green {
+    @apply action-button bg-green-600 hover:bg-green-700 text-white;
+}
+.interactable-container {
+    @apply w-auto h-16 bg-white first-line:flex justify-center items-center px-5 transition duration-300 border border-gray-300 rounded-lg hover:bg-gray-300 active:bg-gray-200;
+    transition: background-color 0.3s;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    &:hover,
+    &:active:not(.selected-hold) {
+        background-color: #eeeeee;
+    }
+}
+
+.used {
+    background-color: #ffe190 !important;
+}

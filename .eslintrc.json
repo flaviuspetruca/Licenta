@@ -1,0 +1,23 @@
+{
+    "env": {
+        "node": true
+    },
+    "overrides": [
+        {
+            "files": ["*.tsx"],
+            "rules": {
+                "@typescript-eslint/naming-convention": "off",
+                "@typescript-eslint/indent": ["error", 4],
+                "capitalized-comments": "off",
+                "@typescript-eslint/quotes": ["error", "double"]
+            }
+        }
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "plugins": [],
+    "rules": {
+    }
+}
