@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import TableRoute from "./TableRoute";
 import TableHolds from "./TableHolds";
 import { Hold } from "../types";
@@ -6,17 +6,19 @@ import { BACKEND_ENDPOINT } from "../configs";
 import Player from "./Player/Player";
 import { Member } from "../utils/utils";
 import { ErrorBoundary } from "react-error-boundary";
+import AppModal from "./AppModal";
 
 const MainPanel = () => {
+    const tableRouteRef = useRef<{ resetPanel: () => void }>();
+    const appModalRef = useRef<{ openModal: () => void }>();
+
     const [holds, setHolds] = useState<Map<string, Hold>>(new Map());
-    const [audioFiles, setAudioFiles] = useState<
-        { audio: string; member: string }[][]
-    >([]);
+    const [audioFiles, setAudioFiles] = useState<{ audio: string; member: string }[][]>([]);
     const [startRouting, setStartRouting] = useState<boolean>(false);
     const [routeName, setRouteName] = useState<string>("");
-    const [routeHighlight, setRouteHighlight] = useState<
-        { positionIndex: number; member: Member } | undefined
-    >(undefined);
+    const [routeHighlight, setRouteHighlight] = useState<{ positionIndex: number; member: Member } | undefined>(
+        undefined
+    );
 
     const handleStartRouting = () => {
         setStartRouting(!startRouting);
@@ -53,10 +55,9 @@ const MainPanel = () => {
 
     return (
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
+            <AppModal ref={appModalRef} resetPanel={tableRouteRef.current?.resetPanel} />
             <div className="main-container">
-                <div
-                    className={`table-holds-container ${audioFiles.length ? "justify-between" : "justify-center"}`}
-                >
+                <div className={`table-holds-container ${audioFiles.length ? "justify-between" : "justify-center"}`}>
                     <TableHolds
                         numRows={8}
                         numCols={6}
@@ -78,6 +79,8 @@ const MainPanel = () => {
                     )}
                 </div>
                 <TableRoute
+                    ref={tableRouteRef}
+                    openModal={appModalRef.current?.openModal}
                     numRows={10}
                     numCols={15}
                     startRouting={startRouting}

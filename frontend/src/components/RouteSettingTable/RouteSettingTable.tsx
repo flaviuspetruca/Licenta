@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Matrix, Placement, Position } from "../../types";
 import RouteSettingTableCell from "./RouteSettingTableCell";
 import { Member, getMember } from "../../utils/utils";
@@ -24,60 +24,47 @@ const RouteSettingTable = ({
     handleRemoveClick,
     handleOnClick,
 }: Props) => {
-    const selectedCells = useMemo(() => {
-        // returns the coordinates of the selected cells
-        // selected cells are the members in currentPosition which have coordinates different from -1
-        // also returns the highlighted member(this state happens on audio listening)
-        let selectedCells = [];
-        for (let [keyPos, placement] of Object.entries(currentPosition)) {
-            for (let [keyPlace, memberCoords] of Object.entries(placement))
-                if (memberCoords.x !== -1 && memberCoords.y !== -1) {
-                    const member = getMember(
-                        keyPos as keyof Position,
-                        keyPlace as keyof Placement
-                    );
-                    selectedCells.push({
-                        x: memberCoords.x,
-                        y: memberCoords.y,
-                        member: member,
-                        highlighed: highlightedMember === member,
-                    });
-                }
-        }
-        return selectedCells;
-    }, [currentPosition, highlightedMember]);
+    const getCells = useCallback(
+        (position: Position | undefined, isHighlighted: boolean = false) => {
+            let cells: any[] = [];
+            if (position === undefined) return cells;
 
-    const previousPositionCells = useMemo(() => {
-        let previousPositionCells: any[] = [];
-        if (previousPosition === undefined) return previousPositionCells;
-        for (let [keyPos, placement] of Object.entries(previousPosition)) {
-            for (let [keyPlace, memberCoords] of Object.entries(placement))
-                if (memberCoords.x !== -1 && memberCoords.y !== -1) {
-                    const member = getMember(
-                        keyPos as keyof Position,
-                        keyPlace as keyof Placement
-                    );
-                    previousPositionCells.push({
-                        x: memberCoords.x,
-                        y: memberCoords.y,
-                        member: member,
-                    });
+            for (let [keyPos, placement] of Object.entries(position)) {
+                for (let [keyPlace, memberCoords] of Object.entries(placement)) {
+                    if (memberCoords.x !== -1 && memberCoords.y !== -1) {
+                        const member = getMember(keyPos as keyof Position, keyPlace as keyof Placement);
+                        cells.push({
+                            x: memberCoords.x,
+                            y: memberCoords.y,
+                            member: member,
+                            highlighted: isHighlighted && highlightedMember === member,
+                        });
+                    }
                 }
-        }
-        console.log(previousPositionCells);
-        return previousPositionCells;
-    }, [previousPosition]);
+            }
+            return cells;
+        },
+        [highlightedMember]
+    );
+
+    const selectedCells = useMemo(() => getCells(currentPosition, true), [getCells, currentPosition]);
+    const previousPositionCells = useMemo(() => getCells(previousPosition), [getCells, previousPosition]);
 
     return (
-        <>
-            <table
-                className="table border-y-yellow-300"
-                onDragOver={handleDragOver}
-            >
-                <tbody>
-                    {matrix.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                            {row.map((cell, colIndex) => (
+        <table className="table border-y-yellow-300" onDragOver={handleDragOver}>
+            <tbody>
+                {matrix.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                        {row.map((cell, colIndex) => {
+                            const selectedCell = selectedCells.find(
+                                (selectedCell) => selectedCell.x === rowIndex && selectedCell.y === colIndex
+                            );
+                            const previousPositionCell = previousPositionCells.find(
+                                (previousPositionCell) =>
+                                    previousPositionCell.x === rowIndex && previousPositionCell.y === colIndex
+                            );
+
+                            return (
                                 <td
                                     key={colIndex}
                                     className="td bg-white"
@@ -91,44 +78,20 @@ const RouteSettingTable = ({
                                         <RouteSettingTableCell
                                             rowIndex={rowIndex}
                                             colIndex={colIndex}
-                                            selectedMember={
-                                                selectedCells.find(
-                                                    (selectedCell) =>
-                                                        selectedCell.x ===
-                                                            rowIndex &&
-                                                        selectedCell.y ===
-                                                            colIndex
-                                                )?.member
-                                            }
-                                            highlightedCell={
-                                                selectedCells.find(
-                                                    (selectedCell) =>
-                                                        selectedCell.x ===
-                                                            rowIndex &&
-                                                        selectedCell.y ===
-                                                            colIndex
-                                                )?.highlighed || false
-                                            }
-                                            previousPositionCell={
-                                                previousPositionCells.find(
-                                                    (previousPositionCell) =>
-                                                        previousPositionCell.x ===
-                                                            rowIndex &&
-                                                        previousPositionCell.y ===
-                                                            colIndex
-                                                )?.member
-                                            }
+                                            selectedMember={selectedCell?.member}
+                                            highlightedCell={selectedCell?.highlighed || false}
+                                            previousPositionCell={previousPositionCell?.member}
                                             holdId={cell.hold_id}
                                             imageFormat={cell.image_format}
-                                        ></RouteSettingTableCell>
+                                        />
                                     )}
                                 </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </>
+                            );
+                        })}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
     );
 };
 

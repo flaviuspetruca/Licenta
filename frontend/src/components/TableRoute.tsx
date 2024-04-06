@@ -1,24 +1,20 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, forwardRef, useImperativeHandle } from "react";
 import "./Table.scss";
-import Modal from "react-modal";
-import {
-    Coordinates,
-    HoldEntity,
-    Matrix,
-    MatrixElement,
-    Placement,
-    Position,
-} from "../types";
 import { BACKEND_ENDPOINT } from "../configs";
+import { Coordinates, HoldEntity, Matrix, MatrixElement, Placement, Position } from "../types";
 import RouteSettingTable from "./RouteSettingTable/RouteSettingTable";
-import PositionSetterBar, {
-    PositionSetterBarState,
-} from "./PositionSetterBar/PositionSetterBar";
+import PositionSetterBar from "./PositionSetterBar/PositionSetterBar";
+import TableRouteActions from "./TableRouteActions/TableRouteActions";
 import { Member } from "../utils/utils";
-import Spinner from "./UI/Spinner";
 import debugRouteJson from "../assets/debug_route.json";
 
-// TO DO: FIND WAY TO IMPORT FROM TYPES: DUPLICATED IN POSITON SETTERBAR
+export enum PositionSetterBarState {
+    HIDDEN = "HIDDEN",
+    OPEN = "OPEN",
+    CLOSED = "CLOSED",
+    ALLOW_EDIT = "ALLOW_EDIT",
+}
+
 export enum PositionSetterBarAction {
     SET_POSITIONS = "setPositions",
     POSITION_SAVE = "positionSave",
@@ -30,27 +26,13 @@ export enum PositionSetterBarAction {
     SET_SELECTED_MEMBER = "setSelectedMember",
 }
 
-const customStyles = {
-    content: {
-        top: "50%",
-        left: "50%",
-        right: "auto",
-        bottom: "auto",
-        marginRight: "-50%",
-        transform: "translate(-50%, -50%)",
-    },
-};
-
-Modal.setAppElement("#root");
-
 type Props = {
+    openModal: (() => void) | undefined;
     numRows: number;
     numCols: number;
     startRouting: boolean;
     routeName: string;
-    setAudioFiles: React.Dispatch<
-        React.SetStateAction<{ audio: string; member: string }[][]>
-    >;
+    setAudioFiles: React.Dispatch<React.SetStateAction<{ audio: string; member: string }[][]>>;
     hasAudioFiles: boolean;
     routeHighlight: { positionIndex: number; member: Member } | undefined;
 };
@@ -58,17 +40,18 @@ type Props = {
 type MemberLabel = "left-hand" | "right-hand" | "left-foot" | "right-foot";
 
 // TODO: MOVE POSITION LOGIC INTO POSITION CLASS
-const TableRoute = ({
-    numRows,
-    numCols,
-    startRouting,
-    routeName,
-    setAudioFiles,
-    hasAudioFiles,
-    routeHighlight,
-}: Props) => {
+const TableRoute = forwardRef((props: Props, ref) => {
+    const {
+        openModal,
+        numRows,
+        numCols,
+        startRouting,
+        routeName,
+        setAudioFiles,
+        hasAudioFiles,
+        routeHighlight,
+    }: Props = props;
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
-    const [modalIsOpen, setIsOpen] = React.useState(false);
     const [isSettingPositions, setIsSettingPositions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedMember, setSelectedMember] = useState<Member>();
@@ -77,20 +60,7 @@ const TableRoute = ({
 
     const [save, setSave] = useState(false);
 
-    const openModal = () => {
-        setIsOpen(true);
-    };
-
-    const closeModal = () => {
-        setIsOpen(false);
-    };
-
-    const resetPanel = () => {
-        setMatrix(_initiateMatrix());
-        closeModal();
-    };
-
-    const _initiateMatrix = useCallback(() => {
+    const _emptyMatrix = useMemo(() => {
         const initialMatrix = [];
         for (let i = 0; i < numRows; i++) {
             const row = [];
@@ -102,7 +72,7 @@ const TableRoute = ({
         return initialMatrix;
     }, [numCols, numRows]);
 
-    const _initiateNewPosition = useCallback(() => {
+    const _emptyNewPosition = useMemo(() => {
         return {
             hands: {
                 leftMember: { x: -1, y: -1 },
@@ -122,10 +92,8 @@ const TableRoute = ({
         ["right-foot", ["feet", "rightMember"]],
     ]);
 
-    const [matrix, setMatrix] = useState<Matrix>(_initiateMatrix());
-    const [currentPosition, setCurrentPosition] = useState<Position>(
-        _initiateNewPosition()
-    );
+    const [matrix, setMatrix] = useState<Matrix>(_emptyMatrix);
+    const [currentPosition, setCurrentPosition] = useState<Position>(_emptyNewPosition);
     const [debugRoute, setDebugRoute] = useState<Boolean>(false);
 
     const isValidPosition = (selectedMember: Member, position: Position) => {
@@ -136,8 +104,7 @@ const TableRoute = ({
 
         const [part, member] = keys;
         return (
-            position[part as keyof Position][member as keyof Placement].x ===
-                -1 &&
+            position[part as keyof Position][member as keyof Placement].x === -1 &&
             position[part as keyof Position][member as keyof Placement].y === -1
         );
     };
@@ -153,14 +120,8 @@ const TableRoute = ({
     const _getMemberFromCurrentPositon = (coordinates: Coordinates) => {
         for (const part in currentPosition) {
             for (const member in currentPosition[part as keyof Position]) {
-                const placement =
-                    currentPosition[part as keyof Position][
-                        member as keyof Placement
-                    ];
-                if (
-                    placement.x === coordinates.x &&
-                    placement.y === coordinates.y
-                ) {
+                const placement = currentPosition[part as keyof Position][member as keyof Placement];
+                if (placement.x === coordinates.x && placement.y === coordinates.y) {
                     return [part, member];
                 }
             }
@@ -172,8 +133,7 @@ const TableRoute = ({
         e.preventDefault();
         if (!isSettingPositions) return;
 
-        const row = (e.currentTarget.parentElement as HTMLTableRowElement)
-            ?.rowIndex;
+        const row = (e.currentTarget.parentElement as HTMLTableRowElement)?.rowIndex;
         const col = e.currentTarget.cellIndex;
         if (matrix[row][col] === undefined) return;
 
@@ -185,9 +145,7 @@ const TableRoute = ({
                 y: col,
             });
             if (!toBeRemoved) return;
-            updatedCurrentPosition[toBeRemoved[0] as keyof Position][
-                toBeRemoved[1] as keyof Placement
-            ] = {
+            updatedCurrentPosition[toBeRemoved[0] as keyof Position][toBeRemoved[1] as keyof Placement] = {
                 x: -1,
                 y: -1,
             };
@@ -201,16 +159,12 @@ const TableRoute = ({
 
         // check if there already was set an action for the new position of the selected member
         if (isValidPosition(selectedMember, currentPosition)) {
-            updatedCurrentPosition[part as keyof Position][
-                member as keyof Placement
-            ] = {
+            updatedCurrentPosition[part as keyof Position][member as keyof Placement] = {
                 x: row,
                 y: col,
             };
         } else {
-            updatedCurrentPosition[part as keyof Position][
-                member as keyof Placement
-            ] = {
+            updatedCurrentPosition[part as keyof Position][member as keyof Placement] = {
                 x: -1,
                 y: -1,
             };
@@ -224,15 +178,12 @@ const TableRoute = ({
     };
 
     const handleOnDrop = (e: React.DragEvent<HTMLTableCellElement>) => {
-        const data = e.dataTransfer.getData(
-            "application/to-route-setting-panel"
-        );
+        const data = e.dataTransfer.getData("application/to-route-setting-panel");
         if (data === "") return;
         const parsedData: HoldEntity = JSON.parse(data);
         if (!parsedData) e.preventDefault();
 
-        const row = (e.currentTarget.parentElement as HTMLTableRowElement)
-            ?.rowIndex;
+        const row = (e.currentTarget.parentElement as HTMLTableRowElement)?.rowIndex;
         const col = e.currentTarget.cellIndex;
 
         matrix[row][col] = parsedData;
@@ -242,12 +193,9 @@ const TableRoute = ({
     // Remove the hold from the route either by dragging it to the trash area or by double clicking it
     const handleRemoveDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        const data = e.dataTransfer.getData(
-            "application/from-route-setting-panel"
-        );
+        const data = e.dataTransfer.getData("application/from-route-setting-panel");
         if (data === "") return;
-        const parsedJson: { rowIndex: number; colIndex: number } =
-            JSON.parse(data);
+        const parsedJson: { rowIndex: number; colIndex: number } = JSON.parse(data);
         const rowIndex = parsedJson.rowIndex;
         const colIndex = parsedJson.colIndex;
         matrix[rowIndex][colIndex] = undefined;
@@ -257,8 +205,7 @@ const TableRoute = ({
     const handleRemoveClick = (e: React.MouseEvent<HTMLTableCellElement>) => {
         e.preventDefault();
         if (isSettingPositions) return;
-        const rowIndex = (e.currentTarget.parentElement as HTMLTableRowElement)
-            ?.rowIndex;
+        const rowIndex = (e.currentTarget.parentElement as HTMLTableRowElement)?.rowIndex;
         const colIndex = e.currentTarget.cellIndex;
 
         // Update holds matrix
@@ -283,7 +230,6 @@ const TableRoute = ({
         if (response.ok) {
             setGenerate(false);
             const data = await response.json();
-            // dispaly download audio button
             // added to history routes
             setAudioFiles(data);
             setIsSettingPositions(false);
@@ -310,7 +256,7 @@ const TableRoute = ({
         }
         setSelectedMember(undefined);
         setPositions([...positions, currentPosition]);
-        setCurrentPosition(_initiateNewPosition());
+        setCurrentPosition(_emptyNewPosition);
         setCurrentPositionIndex(currentPositionIndex + 1);
     };
 
@@ -318,9 +264,7 @@ const TableRoute = ({
         if (!debugRoute) {
             const matrix = debugRouteJson.matrix;
             // replace all occurences of "null" with "undefined"
-            const newMatrix = matrix.map((row) =>
-                row.map((el) => (el === null ? undefined : el))
-            );
+            const newMatrix = matrix.map((row) => row.map((el) => (el === null ? undefined : el)));
             const positions = debugRouteJson.positions;
             setPositions(positions as Position[]);
             setMatrix(newMatrix as MatrixElement[][]);
@@ -347,7 +291,7 @@ const TableRoute = ({
         if (currentPositionIndex < positions.length - 1) {
             setCurrentPosition(positions[currentPositionIndex + 1]);
         } else if (currentPositionIndex === positions.length - 1) {
-            setCurrentPosition(_initiateNewPosition());
+            setCurrentPosition(_emptyNewPosition);
         } else return;
 
         setCurrentPositionIndex(currentPositionIndex + 1);
@@ -361,10 +305,7 @@ const TableRoute = ({
         }
     };
 
-    const handlePositionsSetterBarAction = (
-        action: PositionSetterBarAction,
-        args: any
-    ) => {
+    const handlePositionsSetterBarAction = (action: PositionSetterBarAction, args: any) => {
         switch (action) {
             case PositionSetterBarAction.SAVE:
                 handleSave();
@@ -442,25 +383,34 @@ const TableRoute = ({
         return positions[currentPositionIndex - 1];
     }, [currentPositionIndex, positions]);
 
+    const resetCurrentPosition = useCallback(() => {
+        setCurrentPositionIndex(0);
+        setCurrentPosition(_emptyNewPosition);
+    }, [_emptyNewPosition]);
+
     const resetIsSettingPositions = useCallback(() => {
         setSave(false);
+        setIsEditing(false);
         setPositions([]);
-        setCurrentPositionIndex(0);
-        setCurrentPosition(_initiateNewPosition());
+        resetCurrentPosition();
         setIsSettingPositions(false);
         setSelectedMember(undefined);
-    }, [_initiateNewPosition]);
+    }, [resetCurrentPosition]);
 
-    const resetMatrix = useCallback(() => {
-        setMatrix(_initiateMatrix());
-    }, [_initiateMatrix]);
+    const resetPanel = useCallback(() => {
+        resetIsSettingPositions();
+        setMatrix(_emptyMatrix);
+    }, [_emptyMatrix, resetIsSettingPositions]);
+
+    useImperativeHandle(ref, () => ({
+        resetPanel,
+    }));
 
     useEffect(() => {
         if (startRouting === false) {
-            resetIsSettingPositions();
-            resetMatrix();
+            resetPanel();
         }
-    }, [startRouting, resetIsSettingPositions, resetMatrix]);
+    }, [startRouting, resetPanel]);
 
     useEffect(() => {
         if (routeHighlight && hasAudioFiles) {
@@ -469,28 +419,8 @@ const TableRoute = ({
         }
     }, [routeHighlight, currentPositionIndex, positions, hasAudioFiles]);
 
-    // Render the table
     return (
         <div className="table-container rounded-4xl bg-cyan-800">
-            <Modal
-                isOpen={modalIsOpen}
-                onRequestClose={closeModal}
-                style={customStyles}
-                contentLabel="Confirm reset route"
-            >
-                <h2 className="text-4xl font-bold mb-10">
-                    Esti sigur ca vrei sa resetezi panoul?
-                </h2>
-                <div className="flex justify-end gap-5">
-                    <button className="reset-btn" onClick={resetPanel}>
-                        Reset
-                    </button>
-                    <button className="cancel-btn" onClick={closeModal}>
-                        Cancel
-                    </button>
-                </div>
-            </Modal>
-
             <h2 className="table-h">Route Setting Table</h2>
             <RouteSettingTable
                 currentPosition={currentPosition}
@@ -506,51 +436,23 @@ const TableRoute = ({
                 <PositionSetterBar
                     state={setterBarState}
                     currentPositionIndex={currentPositionIndex}
-                    handlePositionsSetterBarAction={
-                        handlePositionsSetterBarAction
-                    }
+                    handlePositionsSetterBarAction={handlePositionsSetterBarAction}
                     selectedMember={selectedMember}
                     usedMembers={getPositionMembers(currentPosition)}
                     disabled={hasAudioFiles}
                 ></PositionSetterBar>
-                <div className="flex justify-end gap-3">
-                    <button
-                        className={`submit`}
-                        onClick={handleRouteSubmit}
-                        disabled={!save}
-                    >
-                        {generate ? (
-                            <div className="flex content-center items-center flex-row gap-2">
-                                <Spinner />
-                                <p>Processing...</p>
-                            </div>
-                        ) : (
-                            <p>Generate</p>
-                        )}
-                    </button>
-                    <button
-                        className="interactable-container text-red-500 font-bold"
-                        onClick={handleSetDebugRoute}
-                    >
-                        DEBUG
-                    </button>
-                    <div
-                        className="interactable-container flex justify-center"
-                        onDrop={handleRemoveDrop}
-                        onDragOver={handleDragOver}
-                        onClick={openModal}
-                        draggable={false}
-                    >
-                        <img
-                            draggable={false}
-                            src="trash.svg"
-                            alt="trash"
-                        ></img>
-                    </div>
-                </div>
+                <TableRouteActions
+                    handleRouteSubmit={handleRouteSubmit}
+                    handleSetDebugRoute={handleSetDebugRoute}
+                    handleRemoveDrop={handleRemoveDrop}
+                    handleDragOver={handleDragOver}
+                    openModal={openModal}
+                    generate={generate}
+                    save={save}
+                ></TableRouteActions>
             </div>
         </div>
     );
-};
+});
 
 export default TableRoute;

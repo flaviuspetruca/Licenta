@@ -4,5 +4,6 @@
     "useTabs": false,
     "semi": true,
     "singleQuote": false,
-    "tailwindConfig": "./src/tailwind.config.js"
+    "tailwindConfig": "./src/tailwind.config.js",
+    "printWidth": 120
 }
