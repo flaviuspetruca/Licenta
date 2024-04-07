@@ -49,10 +49,6 @@ const MainPanel = () => {
         getHolds();
     }, []);
 
-    useEffect(() => {
-        setAudioFiles([]);
-    }, [startRouting]);
-
     return (
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
             <AppModal ref={appModalRef} resetPanel={tableRouteRef.current?.resetPanel} />
@@ -88,6 +84,7 @@ const MainPanel = () => {
                     setAudioFiles={setAudioFiles}
                     hasAudioFiles={Object.keys(audioFiles).length > 0}
                     routeHighlight={routeHighlight}
+                    setRouteHighlight={setRouteHighlight}
                 />
             </div>
         </ErrorBoundary>

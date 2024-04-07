@@ -59,7 +59,6 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
     const handleNextAudio = () => handleAudioChange("next");
     const handlePreviousAudio = () => handleAudioChange("previous");
 
-    // TODO: CHANGE THIS HARDCODED VALUE
     const getAudioDirectory = () => {
         return audioFiles[0][0].audio.split("/")[0];
     };

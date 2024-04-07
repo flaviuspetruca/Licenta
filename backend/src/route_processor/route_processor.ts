@@ -1,11 +1,17 @@
-import { PANEL_HEIGHT } from "../configs/globals";
+import util from "util";
+import fs from "fs";
+import { __dirname } from "../index";
+import { AUDIO_PATH, PANEL_HEIGHT } from "../configs/globals";
 import { Coordinates, Matrix, Member, MemberMoveInfo, Position, ProcessedPosition } from "../configs/types";
 import { AudioGenerator } from "./audio_generator";
 import RouteComputer from "./compute";
 import { TextGenerator } from "./text_generator";
 
+const writeFileAsync = util.promisify(fs.writeFile);
+
 type RouteProcessorProps = {
-    request_id: string;
+    routeName: string;
+    matrix: Matrix;
     positions: Position[];
 };
 
@@ -20,11 +26,15 @@ class RouteProcessor {
         this.textGenerator = new TextGenerator();
     }
 
-    async processRoute({ request_id, positions }: RouteProcessorProps) {
+    async processRoute({ routeName, matrix, positions }: RouteProcessorProps) {
         const processedPositions = this.processPositions(positions);
         const generatedTexts = this.textGenerator.generateTexts(processedPositions);
-        const audioData = this.audioGenerator.generateAudioData(generatedTexts, processedPositions);
-        return audioData;
+        const { audiosPath, audioFiles } = await this.audioGenerator.generateAudioData(
+            generatedTexts,
+            processedPositions
+        );
+        this._writeRouteInfoToFiles(`${__dirname}/${AUDIO_PATH}/${audiosPath}`, routeName, matrix, positions);
+        return { audiosPath, audioFiles };
     }
 
     /**
@@ -69,12 +79,39 @@ class RouteProcessor {
         return lowestCoordinate;
     }
 
+    private _writeRouteInfoToFiles(path: string, routeName: string, matrix: Matrix, positions: Position[]) {
+        const fileWritePromises = [
+            writeFileAsync(`${path}/matrix.json`, JSON.stringify(matrix)),
+            writeFileAsync(`${path}/positions.json`, JSON.stringify(positions)),
+            writeFileAsync(`${path}/metadata.json`, JSON.stringify({ routeName })),
+        ];
+
+        Promise.all(fileWritePromises).catch((error) => {
+            console.error("Error writing files:", error);
+        });
+    }
+
     hasDifferentCoordinates(member1: Coordinates, member2: Coordinates) {
         if (member1.x === member2.x && member1.y === member2.y) {
             return false;
         } else {
             return true;
         }
+    }
+
+    processPositions(positions: Position[]) {
+        const processedPositions: ProcessedPosition[] = [];
+        // Handling first move where there is no current position
+        const startingPosition = this._makeStartingPosition(positions[0]);
+        let comparison = this.comparePlacements(positions[0], startingPosition);
+
+        // handling rest of the moves
+        processedPositions.push(comparison);
+        for (let i = 0; i < positions.length - 1; i++) {
+            comparison = this.comparePlacements(positions[i + 1], positions[i]);
+            processedPositions.push(comparison);
+        }
+        return processedPositions;
     }
 
     processCoordinates(destinationCoordinates: Coordinates, sourceCoordinates: Coordinates, lowestCoordinate: number) {
@@ -91,21 +128,6 @@ class RouteProcessor {
             heightLevel,
             isDifferent,
         };
-    }
-
-    processPositions(positions: Position[]) {
-        const processedPositions: ProcessedPosition[] = [];
-        // Handling first move where there is no current position
-        const startingPosition = this._makeStartingPosition(positions[0]);
-        let comparison = this.comparePlacements(positions[0], startingPosition);
-
-        // handling rest of the moves
-        processedPositions.push(comparison);
-        for (let i = 0; i < positions.length - 1; i++) {
-            comparison = this.comparePlacements(positions[i + 1], positions[i]);
-            processedPositions.push(comparison);
-        }
-        return processedPositions;
     }
 
     comparePlacements(destinationPosition: Position, sourcePosition: Position) {

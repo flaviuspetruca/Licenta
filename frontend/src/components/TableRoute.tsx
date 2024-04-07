@@ -35,6 +35,7 @@ type Props = {
     setAudioFiles: React.Dispatch<React.SetStateAction<{ audio: string; member: string }[][]>>;
     hasAudioFiles: boolean;
     routeHighlight: { positionIndex: number; member: Member } | undefined;
+    setRouteHighlight: React.Dispatch<React.SetStateAction<{ positionIndex: number; member: Member } | undefined>>;
 };
 
 // TODO: MOVE POSITION LOGIC INTO POSITION CLASS
@@ -48,13 +49,14 @@ const TableRoute = forwardRef((props: Props, ref) => {
         setAudioFiles,
         hasAudioFiles,
         routeHighlight,
+        setRouteHighlight,
     }: Props = props;
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
     const [isSettingPositions, setIsSettingPositions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedMember, setSelectedMember] = useState<Member>();
     const [positions, setPositions] = useState<Position[]>([]);
-    const [generate, setGenerate] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const [save, setSave] = useState(false);
 
@@ -186,8 +188,9 @@ const TableRoute = forwardRef((props: Props, ref) => {
         const body = JSON.stringify({
             routeName,
             positions,
+            matrix,
         });
-        setGenerate(true);
+        setIsGenerating(true);
         const response = await fetch(`${BACKEND_ENDPOINT}/route`, {
             headers: {
                 "Content-Type": "application/json",
@@ -196,14 +199,14 @@ const TableRoute = forwardRef((props: Props, ref) => {
             body,
         });
         if (response.ok) {
-            setGenerate(false);
+            setIsGenerating(false);
             const data = await response.json();
             // added to history routes
             setAudioFiles(data);
             setIsSettingPositions(false);
             setIsEditing(false);
         } else {
-            setGenerate(false);
+            setIsGenerating(false);
             setAudioFiles([]);
             console.log("Error submitting the route" + response.status);
         }
@@ -225,9 +228,16 @@ const TableRoute = forwardRef((props: Props, ref) => {
             return;
         }
 
+        positions[currentPositionIndex] = currentPosition;
+        if (currentPositionIndex < positions.length) {
+            // replacing the current position
+            setCurrentPosition(positions[currentPositionIndex + 1]);
+        } else {
+            setCurrentPosition(_emptyNewPosition);
+        }
+
         setSelectedMember(undefined);
-        setPositions([...positions, currentPosition]);
-        setCurrentPosition(_emptyNewPosition);
+        setPositions([...positions]);
         setCurrentPositionIndex(currentPositionIndex + 1);
     };
 
@@ -254,6 +264,9 @@ const TableRoute = forwardRef((props: Props, ref) => {
     };
 
     const handleEdit = () => {
+        setIsSettingPositions(true);
+        setAudioFiles([]);
+        setRouteHighlight(undefined);
         setIsEditing(!isEditing);
     };
 
@@ -282,7 +295,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
                 handleSave();
                 break;
             case PositionSetterBarAction.CANCEL:
-                resetIsSettingPositions();
+                resetSettingPositions();
                 break;
             case PositionSetterBarAction.SET_POSITIONS:
                 handleSetPositions();
@@ -335,19 +348,21 @@ const TableRoute = forwardRef((props: Props, ref) => {
         setCurrentPosition(_emptyNewPosition);
     }, [_emptyNewPosition]);
 
-    const resetIsSettingPositions = useCallback(() => {
+    const resetSettingPositions = useCallback(() => {
         setSave(false);
+        setRouteHighlight(undefined);
+        setAudioFiles([]);
         setIsEditing(false);
         setPositions([]);
         resetCurrentPosition();
         setIsSettingPositions(false);
         setSelectedMember(undefined);
-    }, [resetCurrentPosition]);
+    }, [resetCurrentPosition, setAudioFiles, setRouteHighlight]);
 
     const resetPanel = useCallback(() => {
-        resetIsSettingPositions();
+        resetSettingPositions();
         setMatrix(_emptyMatrix);
-    }, [_emptyMatrix, resetIsSettingPositions]);
+    }, [_emptyMatrix, resetSettingPositions]);
 
     useImperativeHandle(ref, () => ({
         resetPanel,
@@ -394,7 +409,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
                     handleRemoveDrop={handleRemoveDrop}
                     handleDragOver={handleDragOver}
                     openModal={openModal}
-                    generate={generate}
+                    isGenerating={isGenerating}
                     save={save}
                 ></TableRouteActions>
             </div>

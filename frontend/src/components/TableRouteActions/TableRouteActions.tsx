@@ -7,7 +7,7 @@ type TableRouteActionsProps = {
     handleRemoveDrop: (event: React.DragEvent<HTMLDivElement>) => void;
     handleDragOver: (event: React.DragEvent<HTMLTableElement>) => void;
     openModal: (() => void) | undefined;
-    generate: boolean;
+    isGenerating: boolean;
     save: boolean;
 };
 
@@ -17,12 +17,12 @@ const TableRouteActions: FC<TableRouteActionsProps> = ({
     handleRemoveDrop,
     handleDragOver,
     openModal,
-    generate,
+    isGenerating,
     save,
 }) => (
     <div className="flex justify-end gap-3">
         <button className={`submit`} onClick={handleRouteSubmit} disabled={!save}>
-            {generate ? (
+            {isGenerating ? (
                 <div className="flex content-center items-center flex-row gap-2">
                     <Spinner />
                     <p>Processing...</p>

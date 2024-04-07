@@ -5,7 +5,11 @@ import { ProcessedPosition } from "../configs/types";
 export class AudioGenerator {
     async generateAudioData(generatedTexts: string[], processedPositions: ProcessedPosition[]) {
         const audioFiles = await this.textToSpeech(generatedTexts);
-        return this.buildAudioData(audioFiles, processedPositions);
+        const dirName = audioFiles[0].split("/")[0];
+        return {
+            audiosPath: dirName,
+            audioFiles: this.buildAudioData(audioFiles, processedPositions),
+        };
     }
 
     async textToSpeech(generateMemberTexts: string[]) {

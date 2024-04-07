@@ -10,7 +10,7 @@ import { uuid_mapper } from "./utils/http";
 import RouteProcessor from "./route_processor/route_processor";
 
 export const app = express();
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(uuid_mapper);
 app.use(cors());
@@ -35,7 +35,7 @@ app.get("/holds-info", (req: Request, res: Response) => {
 app.post("/route", async (req: Request, res: Response) => {
     const route = req.body;
     const processor = new RouteProcessor();
-    const audioFiles = await processor.processRoute(route);
+    const { audiosPath, audioFiles } = await processor.processRoute(route);
 
     // DEBUG PURPOSES ONLY
     // write to json file the array of audio files
