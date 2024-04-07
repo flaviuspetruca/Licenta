@@ -53,7 +53,9 @@ const MainPanel = () => {
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
             <AppModal ref={appModalRef} resetPanel={tableRouteRef.current?.resetPanel} />
             <div className="main-container">
-                <div className={`table-holds-container ${audioFiles.length ? "justify-between" : "justify-center"}`}>
+                <div
+                    className={`table-holds-container w1/3 ${audioFiles.length ? "justify-between" : "justify-center"}`}
+                >
                     <TableHolds
                         numRows={8}
                         numCols={6}

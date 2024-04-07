@@ -21,7 +21,7 @@ const PositionSetterBar = ({
     return state === PositionSetterBarState.HIDDEN ? (
         <div></div>
     ) : (
-        <div className="flex flex-row bg-slate-200 rounded-lg p-4 gap-5">
+        <div className="flex basis-3/5 h-fit flex-row bg-slate-200 rounded-lg p-3 gap-5">
             {state === PositionSetterBarState.ALLOW_EDIT && (
                 <button
                     className="action-button-blue"
@@ -65,12 +65,6 @@ const PositionSetterBar = ({
                             onClick={() => handlePositionsSetterBarAction(PositionSetterBarAction.NEXT)}
                         >
                             Next
-                        </button>
-                        <button
-                            className="action-button-green"
-                            onClick={() => handlePositionsSetterBarAction(PositionSetterBarAction.SAVE)}
-                        >
-                            Save route
                         </button>
                     </div>
                     <div className="flex flex-row mx:auto gap-3 mt-5">

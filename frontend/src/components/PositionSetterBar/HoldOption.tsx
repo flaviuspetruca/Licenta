@@ -8,12 +8,7 @@ type Props = {
     isUsed: boolean;
 };
 
-const HoldOption = ({
-    selectedMember,
-    setSelectedMember,
-    member,
-    isUsed,
-}: Props) => {
+const HoldOption = ({ selectedMember, setSelectedMember, member, isUsed }: Props) => {
     const [selectedCSSClass, setSelectedCSSClass] = useState("");
 
     const handleSelectedMember = () => {
@@ -34,16 +29,11 @@ const HoldOption = ({
 
     return (
         <button
-            className={`interactable-container !border-slate-950 !border-3 !w-28 !h-24 ${selectedCSSClass} ${isUsed ? "used" : ""}`}
+            className={`interactable-container !border-slate-950 !border-3 ${selectedCSSClass} ${isUsed ? "used" : ""}`}
             onClick={handleSelectedMember}
             disabled={isUsed}
         >
-            <img
-                draggable={false}
-                src={`outputs/${member}.png`}
-                alt={member}
-                className="hold-image"
-            ></img>
+            <img draggable={false} src={`outputs/${member}.png`} alt={member} className="hold-image"></img>
         </button>
     );
 };

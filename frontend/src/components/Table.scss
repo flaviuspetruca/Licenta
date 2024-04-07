@@ -1,23 +1,35 @@
 /* MatrixTable.css */
 
 .table-container {
-    @apply flex flex-col p-10 gap-5 h-full max-h-128;
+    @apply flex flex-col p-5 gap-4;
 }
 
-.table {
-    @apply border-collapse table-fixed;
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.table-route-controls {
+    @apply flex flex-row justify-between gap-3 bg-teal-950 rounded-b-xl h-full p-4;
+}
+
+.table-holds {
+    @apply border-collapse;
+}
+
+.table-route {
+    @apply border-collapse table-fixed min-w-56;
 }
 
 .table-h {
-    @apply text-4xl font-bold text-white bg-black rounded-lg p-5 max-w-max shadow-lg;
+    @apply text-xl font-bold text-white bg-black rounded-lg px-3 py-1 max-w-max shadow-lg;
 }
-
-.td {
-    @apply p-0 h-14 w-16  max-h-14 max-w-16 min-h-14 min-w-16 text-center border border-solid border-green-600;
+.table-wrapper th,
+td {
+    @apply p-0 h-10 w-12 max-h-10 max-w-12 min-h-10 min-w-12 text-center border border-solid border-green-600;
 }
 
 .hold-image {
-    @apply h-14 w-16 max-h-14 max-w-16;
+    @apply h-10 w-12 max-h-10 max-w-12;
 }
 
 .selected-hold-member-image {
@@ -41,11 +53,11 @@
 }
 
 .submit {
-    @apply w-48 h-16 inline-block px-5 text-lg font-bold text-center no-underline rounded-md text-white transition duration-300 ease-in-out cursor-pointer bg-purple-600 hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70;
+    @apply w-28 h-11 px-1 inline-block text-sm font-semibold text-center no-underline rounded-md text-white transition duration-300 ease-in-out cursor-pointer bg-purple-600 hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70;
 }
 
 .action-button {
-    @apply font-bold py-2 px-4 rounded-full shadow-md max-w-max max-h-min disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply text-sm font-semibold py-1 px-3 min-h-8 rounded-full shadow-md max-w-max max-h-min disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .action-button-blue {
@@ -63,8 +75,9 @@
 .action-button-green {
     @apply action-button bg-green-600 hover:bg-green-700 text-white;
 }
+
 .interactable-container {
-    @apply w-auto h-16 bg-white first-line:flex justify-center items-center px-5 transition duration-300 border border-gray-300 rounded-lg hover:bg-gray-300 active:bg-gray-200;
+    @apply w-auto h-11 bg-white text-sm first-line:flex justify-center items-center px-3 transition duration-300 border border-gray-300 rounded-lg hover:bg-gray-300 active:bg-gray-200;
     transition: background-color 0.3s;
     border-radius: 5px;
     border: 1px solid #ddd;
@@ -74,6 +87,10 @@
     }
 }
 
+.trash-img {
+    @apply h-6 w-6 max-h-6 max-w-6;
+}
+
 .used {
-    background-color: #ffe190 !important;
+    @apply bg-amber-300 hover:bg-amber-300;
 }

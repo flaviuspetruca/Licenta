@@ -8,7 +8,7 @@ type TableRouteActionsProps = {
     handleDragOver: (event: React.DragEvent<HTMLTableElement>) => void;
     openModal: (() => void) | undefined;
     isGenerating: boolean;
-    save: boolean;
+    generationDisabled: boolean;
 };
 
 const TableRouteActions: FC<TableRouteActionsProps> = ({
@@ -18,13 +18,13 @@ const TableRouteActions: FC<TableRouteActionsProps> = ({
     handleDragOver,
     openModal,
     isGenerating,
-    save,
+    generationDisabled,
 }) => (
-    <div className="flex justify-end gap-3">
-        <button className={`submit`} onClick={handleRouteSubmit} disabled={!save}>
+    <div className="flex flex-wrap justify-end gap-2">
+        <button className={`submit`} onClick={handleRouteSubmit} disabled={generationDisabled || isGenerating}>
             {isGenerating ? (
                 <div className="flex content-center items-center flex-row gap-2">
-                    <Spinner />
+                    <Spinner variant="text-white" />
                     <p>Processing...</p>
                 </div>
             ) : (
@@ -41,7 +41,7 @@ const TableRouteActions: FC<TableRouteActionsProps> = ({
             onClick={openModal}
             draggable={false}
         >
-            <img draggable={false} src="trash.svg" alt="trash"></img>
+            <img draggable={false} className="trash-img" src="trash.svg" alt="trash"></img>
         </div>
     </div>
 );

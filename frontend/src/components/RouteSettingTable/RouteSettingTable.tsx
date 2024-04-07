@@ -45,53 +45,55 @@ const RouteSettingTable = ({
     const previousPositionCells = useMemo(() => getCells(previousPosition), [getCells, previousPosition]);
 
     return (
-        <table className="table border-y-yellow-300" onDragOver={handleDragOver}>
-            <tbody>
-                {matrix.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                        {row.map((cell, colIndex) => {
-                            const currentPositionCell = currentPositionCells.find(
-                                (currentPositionCell) =>
-                                    currentPositionCell.x === rowIndex && currentPositionCell.y === colIndex
-                            );
+        <div className="table-wrapper">
+            <table className="table-route border-y-yellow-300" onDragOver={handleDragOver}>
+                <tbody>
+                    {matrix.map((row, rowIndex) => (
+                        <tr key={rowIndex}>
+                            {row.map((cell, colIndex) => {
+                                const currentPositionCell = currentPositionCells.find(
+                                    (currentPositionCell) =>
+                                        currentPositionCell.x === rowIndex && currentPositionCell.y === colIndex
+                                );
 
-                            const previousPositionCell = previousPositionCells.find(
-                                (previousPositionCell) =>
-                                    previousPositionCell.x === rowIndex && previousPositionCell.y === colIndex
-                            );
+                                const previousPositionCell = previousPositionCells.find(
+                                    (previousPositionCell) =>
+                                        previousPositionCell.x === rowIndex && previousPositionCell.y === colIndex
+                                );
 
-                            const isHighlighted = highlightedMember
-                                ? highlightedMember === currentPositionCell?.member
-                                : false;
+                                const isHighlighted = highlightedMember
+                                    ? highlightedMember === currentPositionCell?.member
+                                    : false;
 
-                            return (
-                                <td
-                                    key={colIndex}
-                                    className="td bg-white"
-                                    onDrop={handleOnDrop}
-                                    onDoubleClick={handleRemoveClick}
-                                    onClick={handleOnClick}
-                                >
-                                    {cell === undefined ? (
-                                        cell
-                                    ) : (
-                                        <RouteSettingTableCell
-                                            rowIndex={rowIndex}
-                                            colIndex={colIndex}
-                                            selectedMember={currentPositionCell?.member}
-                                            highlightedCell={isHighlighted}
-                                            previousPositionCell={previousPositionCell?.member}
-                                            holdId={cell.hold_id}
-                                            imageFormat={cell.image_format}
-                                        />
-                                    )}
-                                </td>
-                            );
-                        })}
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+                                return (
+                                    <td
+                                        key={colIndex}
+                                        className="td bg-white"
+                                        onDrop={handleOnDrop}
+                                        onDoubleClick={handleRemoveClick}
+                                        onClick={handleOnClick}
+                                    >
+                                        {cell === undefined ? (
+                                            cell
+                                        ) : (
+                                            <RouteSettingTableCell
+                                                rowIndex={rowIndex}
+                                                colIndex={colIndex}
+                                                selectedMember={currentPositionCell?.member}
+                                                highlightedCell={isHighlighted}
+                                                previousPositionCell={previousPositionCell?.member}
+                                                holdId={cell.hold_id}
+                                                imageFormat={cell.image_format}
+                                            />
+                                        )}
+                                    </td>
+                                );
+                            })}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
     );
 };
 

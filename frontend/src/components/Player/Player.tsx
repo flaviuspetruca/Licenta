@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { AUDIO_BACKEND_ENDPOINT, BACKEND_ENDPOINT } from "../../configs";
 import { Member } from "../../utils/utils";
 import { ReactComponent as DownloadSvg } from "../../assets/download.svg";
+import Spinner from "../UI/Spinner";
 
 type Props = {
     audioFiles: { audio: string; member: string }[][];
@@ -13,6 +14,8 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
     const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
     const audioPlayer = useRef<HTMLAudioElement>(null);
+
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         const handleRouteHighlight = () => {
@@ -64,6 +67,8 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
     };
 
     const handleDownloadAudio = async () => {
+        if (downloading) return;
+        setDownloading(true);
         const url = new URL(AUDIO_BACKEND_ENDPOINT);
         url.pathname = "/merge-audio";
         url.searchParams.append("directory_path", getAudioDirectory());
@@ -78,6 +83,7 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
             console.error("Failed to download audio");
             return;
         }
+        setDownloading(false);
 
         const blob = await response.blob();
         // Extract the filename from the URL
@@ -112,22 +118,22 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
                 }}
             />
             <div className="flex justify-between">
-                <div className="flex justify-center rounded-full bg-orange-500 w-auto px-3">
-                    <p className="text-white font-bold text-center py-2">{`Position ${currentPositionIndex + 1}`}</p>
+                <div className="flex justify-center items-center rounded-full bg-orange-500 w-auto px-3 h-10">
+                    <p className="text-white text-sm font-semibold text-center py-2">{`Position ${currentPositionIndex + 1}`}</p>
                 </div>
-                <div className="flex space-x-3">
-                    <button className=" bg-gray-100 rounded-lg border-4 border-slate-400" onClick={handleDownloadAudio}>
-                        <DownloadSvg className="max-h-8 max-w-8" />
+                <div className="flex space-x-1">
+                    <button className="btn btn-square bg-gray-100" onClick={handleDownloadAudio}>
+                        {!downloading ? <DownloadSvg className="max-h-8 max-w-8" /> : <Spinner />}
                     </button>
                     <button
                         onClick={handlePreviousAudio}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+                        className="btn px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
                     >
                         Previous
                     </button>
                     <button
                         onClick={handleNextAudio}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+                        className="btn px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
                     >
                         Next
                     </button>

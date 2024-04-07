@@ -3,10 +3,9 @@ import "./Table.scss";
 import { BACKEND_ENDPOINT } from "../configs";
 import { Coordinates, HoldEntity, Matrix, MatrixElement, Position } from "../types";
 import RouteSettingTable from "./RouteSettingTable/RouteSettingTable";
-import PositionSetterBar from "./PositionSetterBar/PositionSetterBar";
-import TableRouteActions from "./TableRouteActions/TableRouteActions";
 import { Member } from "../utils/utils";
 import debugRouteJson from "../assets/debug_route.json";
+import TableRouteControls from "./TableRouteControls/TableRouteControls";
 
 export enum PositionSetterBarState {
     HIDDEN = "HIDDEN",
@@ -58,8 +57,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const [positions, setPositions] = useState<Position[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const [save, setSave] = useState(false);
-
     const _emptyMatrix = useMemo(() => {
         const initialMatrix = [];
         for (let i = 0; i < numRows; i++) {
@@ -104,6 +101,10 @@ const TableRoute = forwardRef((props: Props, ref) => {
             .filter(([, coordinates]) => coordinates.x !== -1 && coordinates.y !== -1)
             .map(([member]) => member as Member);
     };
+
+    const usedMembers = useMemo(() => {
+        return _getMembersWithSetCoordinates(currentPosition);
+    }, [currentPosition]);
 
     // Function to update the current position
     const updateCurrentPosition = (member: Member, coordinates: Coordinates) => {
@@ -224,15 +225,16 @@ const TableRoute = forwardRef((props: Props, ref) => {
         // TODO
         // Check if all members in the current position have coordinates set
         // Throw error mechanism
-        if (_getMembersWithSetCoordinates(currentPosition).length !== 4) {
+        if (usedMembers.length !== 4) {
             return;
         }
 
-        positions[currentPositionIndex] = currentPosition;
         if (currentPositionIndex < positions.length) {
-            // replacing the current position
-            setCurrentPosition(positions[currentPositionIndex + 1]);
+            // replacing the current position 
+            positions[currentPositionIndex] = currentPosition;
+            setCurrentPosition(positions[currentPositionIndex]);
         } else {
+            positions.push(currentPosition);
             setCurrentPosition(_emptyNewPosition);
         }
 
@@ -255,12 +257,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
     const handleSetSelectedMember = (member: Member) => {
         setSelectedMember(member);
-        setSave(false);
-    };
-
-    const handleSave = () => {
-        setSave(!save);
-        setSelectedMember(undefined);
     };
 
     const handleEdit = () => {
@@ -284,16 +280,13 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const handlePrevious = () => {
         setSelectedMember(undefined);
         if (currentPositionIndex > 0) {
-            setCurrentPositionIndex(currentPositionIndex - 1);
             setCurrentPosition(positions[currentPositionIndex - 1]);
+            setCurrentPositionIndex(currentPositionIndex - 1);
         }
     };
 
     const handlePositionsSetterBarAction = (action: PositionSetterBarAction, args: any) => {
         switch (action) {
-            case PositionSetterBarAction.SAVE:
-                handleSave();
-                break;
             case PositionSetterBarAction.CANCEL:
                 resetSettingPositions();
                 break;
@@ -349,7 +342,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
     }, [_emptyNewPosition]);
 
     const resetSettingPositions = useCallback(() => {
-        setSave(false);
         setRouteHighlight(undefined);
         setAudioFiles([]);
         setIsEditing(false);
@@ -383,10 +375,10 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
     return (
         <div className="table-container rounded-4xl bg-cyan-800">
-            <h2 className="table-h">Route Setting Table</h2>
+            <h3 className="table-h">Route Setting Table</h3>
             <RouteSettingTable
-                currentPosition={currentPosition}
                 previousPosition={previousPosition}
+                currentPosition={currentPosition}
                 highlightedMember={routeHighlight?.member}
                 matrix={matrix}
                 handleDragOver={handleDragOver}
@@ -394,25 +386,21 @@ const TableRoute = forwardRef((props: Props, ref) => {
                 handleRemoveClick={handleRemoveClick}
                 handleOnClick={handleOnClick}
             ></RouteSettingTable>
-            <div className="flex flex-row justify-between">
-                <PositionSetterBar
-                    state={setterBarState}
-                    currentPositionIndex={currentPositionIndex}
-                    handlePositionsSetterBarAction={handlePositionsSetterBarAction}
-                    selectedMember={selectedMember}
-                    usedMembers={_getMembersWithSetCoordinates(currentPosition)}
-                    disabled={hasAudioFiles}
-                ></PositionSetterBar>
-                <TableRouteActions
-                    handleRouteSubmit={handleRouteSubmit}
-                    handleSetDebugRoute={handleSetDebugRoute}
-                    handleRemoveDrop={handleRemoveDrop}
-                    handleDragOver={handleDragOver}
-                    openModal={openModal}
-                    isGenerating={isGenerating}
-                    save={save}
-                ></TableRouteActions>
-            </div>
+            <TableRouteControls
+                setterBarState={setterBarState}
+                selectedMember={selectedMember}
+                usedMembers={usedMembers}
+                currentPositionIndex={currentPositionIndex}
+                hasAudioFiles={hasAudioFiles}
+                isGenerating={isGenerating}
+                handlePositionsSetterBarAction={handlePositionsSetterBarAction}
+                handleRouteSubmit={handleRouteSubmit}
+                handleSetDebugRoute={handleSetDebugRoute}
+                handleRemoveDrop={handleRemoveDrop}
+                handleDragOver={handleDragOver}
+                openModal={openModal}
+                generationDisabled={positions.length === 0}
+            />
         </div>
     );
 });

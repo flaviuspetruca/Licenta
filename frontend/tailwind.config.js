@@ -30,7 +30,19 @@ module.exports = {
             maxHeight: {
                 128: "70rem",
             },
+            minHeight: {
+                128: "70rem",
+            },
+            minWidth: {
+                128: "70rem",
+            },
+            maxWidth: {
+                128: "70rem",
+            },
+            flexBasis: {
+                "3/5": "60%",
+            },
         },
     },
-    plugins: [],
+    plugins: [require("daisyui")],
 };

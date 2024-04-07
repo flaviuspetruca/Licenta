@@ -39,16 +39,12 @@ const TableHolds = ({
                     row.push(
                         <div
                             draggable={hold !== undefined && startRouting}
-                            onDragStart={(e) =>
-                                handleOnDrag(e, { ...hold, hold_id })
-                            }
+                            onDragStart={(e) => handleOnDrag(e, { ...hold, hold_id })}
                         >
                             <img
                                 draggable={hold !== undefined && startRouting}
                                 className="hold-image"
-                                src={getHoldImageURL(
-                                    `${hold_id}.${hold_image_format}`
-                                )}
+                                src={getHoldImageURL(`${hold_id}.${hold_image_format}`)}
                                 alt={`hold_${numRows * i + j}`}
                             />
                         </div>
@@ -62,10 +58,7 @@ const TableHolds = ({
         return result;
     }, [numRows, numCols, holds, startRouting]);
 
-    const handleOnDrag = (
-        e: React.DragEvent<HTMLDivElement>,
-        data: HoldEntity
-    ) => {
+    const handleOnDrag = (e: React.DragEvent<HTMLDivElement>, data: HoldEntity) => {
         e.dataTransfer.clearData();
         e.dataTransfer.setData(
             "application/to-route-setting-panel",
@@ -101,30 +94,31 @@ const TableHolds = ({
                 transition: "height 0.3s ease-in-out",
             }}
         >
-            <h2 className="table-h">Holds Panel</h2>
-            <table className="table w-fit">
-                <tbody>
-                    {matrix.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                            {row.map((cell, colIndex) => (
-                                <td key={colIndex} className="td bg-white">
-                                    {cell}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <h3 className="table-h">Holds Panel</h3>
+            <div className="table-wrapper">
+                <table className="table-holds">
+                    <tbody>
+                        {matrix.map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                                {row.map((cell, colIndex) => (
+                                    <td key={colIndex} className="td bg-white">
+                                        {cell}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
             <div className="flex flex-row justify-between">
                 <button
                     className={`action-button-${startRouting ? "orange" : "blue"}`}
                     onClick={() => setStartRouting(!startRouting)}
                 >
-                    {startRouting ? "Cancel" : "Start Planning"}
+                    {startRouting ? "Cancel" : "Plan"}
                 </button>
                 <input
-                    className="bg-gray-100 appearance-none border-2 border-black-200 rounded w-1/2 py-2 px-4 text-gray-700 leading-tight border-black focus:outline-none focus:bg-white focus:border-purple-900"
-                    id="inline"
+                    className="input max-w-sm"
                     type="text"
                     placeholder="Route name"
                     value={routeName}

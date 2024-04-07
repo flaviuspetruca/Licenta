@@ -1,8 +1,11 @@
 import React from "react";
-import "./Spinner.scss"; // Import CSS for spinner styling
 
-const Spinner = () => {
-    return <div className={`animate-spin spinner`}></div>;
+type Props = {
+    variant?: "text-white" | undefined;
+};
+
+const Spinner = ({ variant }: Props) => {
+    return <span className={`loading loading-spinner w-4 ${variant}`}></span>;
 };
 
 export default Spinner;
