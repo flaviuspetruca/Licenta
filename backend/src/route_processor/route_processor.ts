@@ -1,58 +1,72 @@
-import { Coordinates, Matrix, Position } from "../configs/types";
+import { PANEL_HEIGHT } from "../configs/globals";
+import { Coordinates, Matrix, Member, MemberMoveInfo, Position, ProcessedPosition } from "../configs/types";
+import { AudioGenerator } from "./audio_generator";
 import RouteComputer from "./compute";
 import { TextGenerator } from "./text_generator";
 
-type MemberType = "hands" | "feet";
-type SideType = "leftMember" | "rightMember";
-
-// TODO: MOVE THIS TO   CONFIGS
-export const CELL_EDGE_SIZE = 30; // DISTANCE BETWEEN CENTERS OF TWO CELLS
-export const CLOSE_LIMIT_DISTANCE = Math.sqrt(2 * Math.pow(CELL_EDGE_SIZE, 2));
-export const FAR_LIMIT_DISTANCE = Math.sqrt(
-    Math.pow(2 * CELL_EDGE_SIZE, 2) + Math.pow(CELL_EDGE_SIZE, 2)
-);
-export const MEMBERS: Array<[MemberType, SideType]> = [
-    ["hands", "leftMember"],
-    ["hands", "rightMember"],
-    ["feet", "leftMember"],
-    ["feet", "rightMember"],
-];
-
 type RouteProcessorProps = {
     request_id: string;
-    matrix: Matrix;
     positions: Position[];
 };
 
 class RouteProcessor {
-    request_id: string;
-    matrix: Matrix;
-    positions: Position[];
     routeComputer: RouteComputer;
-    results: any[];
     textGenerator: TextGenerator;
+    audioGenerator: AudioGenerator;
 
-    constructor({ request_id, matrix, positions }: RouteProcessorProps) {
-        this.request_id = request_id;
-        this.matrix = matrix;
-        this.positions = positions;
-        this.routeComputer = new RouteComputer(this.positions[0]);
-        this.results = [];
+    constructor() {
+        this.routeComputer = new RouteComputer();
+        this.audioGenerator = new AudioGenerator();
+        this.textGenerator = new TextGenerator();
     }
 
-    async processRoute() {
-        // Handling first move where there is no current position
-        let comparison = this.comparePlacements(this.positions[0], null);
-        this.results.push(comparison);
-        for (let i = 0; i < this.positions.length - 1; i++) {
-            comparison = this.comparePlacements(
-                this.positions[i + 1],
-                this.positions[i]
-            );
-            this.results.push(comparison);
+    async processRoute({ request_id, positions }: RouteProcessorProps) {
+        const processedPositions = this.processPositions(positions);
+        const generatedTexts = this.textGenerator.generateTexts(processedPositions);
+        const audioData = this.audioGenerator.generateAudioData(generatedTexts, processedPositions);
+        return audioData;
+    }
+
+    /**
+     * In order to create a fake starting position,
+     * there is a need of a first position to be passed as an argument
+     * it needs to use the x coordinates, to simulate the person standing in front of the wall
+     * It is considered the person is starting the track standing straight
+     */
+    private _makeStartingPosition(firstPosition: Position) {
+        // TODO: index might be out of bounds if left hold is on the right edge of the wall
+        const position: Position = {
+            "left-hand": {
+                x: PANEL_HEIGHT - 2, // -2 because we want the hands to be at hip level
+                y: firstPosition["left-hand"].y + 1,
+            },
+            "right-hand": {
+                x: PANEL_HEIGHT - 2, // -2 because we want the hands to be at hip level
+                y: firstPosition["right-hand"].y - 1,
+            },
+            "left-foot": {
+                x: PANEL_HEIGHT,
+                y: firstPosition["left-foot"].y + 1,
+            },
+            "right-foot": {
+                x: PANEL_HEIGHT,
+                y: firstPosition["right-foot"].y - 1,
+            },
+        };
+        return position;
+    }
+
+    private _getLowestCoordinate(position?: Position) {
+        let lowestCoordinate = PANEL_HEIGHT;
+        if (position) {
+            lowestCoordinate = 0;
+            for (const [_member, coordinates] of Object.entries(position)) {
+                if (coordinates.x >= lowestCoordinate) {
+                    lowestCoordinate = coordinates.x;
+                }
+            }
         }
-        this.textGenerator = new TextGenerator(this.request_id, this.results);
-        return await this.textGenerator.generateText();
+        return lowestCoordinate;
     }
 
     hasDifferentCoordinates(member1: Coordinates, member2: Coordinates) {
@@ -63,68 +77,58 @@ class RouteProcessor {
         }
     }
 
-    processCoordinates(
-        destinationCoordinates: Coordinates,
-        sourceCoordinates: Coordinates
-    ) {
-        const distance = this.routeComputer.computeDistance(
-            destinationCoordinates,
-            sourceCoordinates
-        );
+    processCoordinates(destinationCoordinates: Coordinates, sourceCoordinates: Coordinates, lowestCoordinate: number) {
+        const distance = this.routeComputer.computeDistance(destinationCoordinates, sourceCoordinates);
         if (!distance) {
             // throw error
         }
-        const direction = this.routeComputer.computeDirection(
-            destinationCoordinates,
-            sourceCoordinates
-        );
+        const direction = this.routeComputer.computeDirection(destinationCoordinates, sourceCoordinates);
+        const heightLevel = this.routeComputer.computeHeightLevel(destinationCoordinates, lowestCoordinate);
+        const isDifferent = this.hasDifferentCoordinates(destinationCoordinates, sourceCoordinates);
         return {
             distance,
             direction,
+            heightLevel,
+            isDifferent,
         };
     }
 
-    comparePlacements(
-        destinationPosition: Position,
-        sourcePosition?: Position
-    ) {
-        const result = {
-            hands: {
-                leftMember: null,
-                rightMember: null,
-            },
-            feet: {
-                leftMember: null,
-                rightMember: null,
-            },
+    processPositions(positions: Position[]) {
+        const processedPositions: ProcessedPosition[] = [];
+        // Handling first move where there is no current position
+        const startingPosition = this._makeStartingPosition(positions[0]);
+        let comparison = this.comparePlacements(positions[0], startingPosition);
+
+        // handling rest of the moves
+        processedPositions.push(comparison);
+        for (let i = 0; i < positions.length - 1; i++) {
+            comparison = this.comparePlacements(positions[i + 1], positions[i]);
+            processedPositions.push(comparison);
+        }
+        return processedPositions;
+    }
+
+    comparePlacements(destinationPosition: Position, sourcePosition: Position) {
+        const _initMemberMoveInfo = (): MemberMoveInfo => ({
+            distance: undefined,
+            direction: undefined,
+            heightLevel: undefined,
+            isDifferent: undefined,
+        });
+
+        const result: ProcessedPosition = {
+            "left-hand": _initMemberMoveInfo(),
+            "right-hand": _initMemberMoveInfo(),
+            "left-foot": _initMemberMoveInfo(),
+            "right-foot": _initMemberMoveInfo(),
         };
 
-        const heightLevels = this.routeComputer.computeHeightLevels(
-            destinationPosition,
-            sourcePosition
-        );
+        const lowestCoordinate = this._getLowestCoordinate(sourcePosition);
 
-        // TODO: IMPROVEMENT REMOVE THE USE OF THIS FOR LOOP
-        // IT IS USED ALSO IN COMPUTE.ts
-
-        for (const [part, member] of MEMBERS) {
-            const destinationCoordinates = destinationPosition[part][member];
-            const sourceCoordinates = sourcePosition
-                ? sourcePosition[part][member]
-                : this.routeComputer.startingPosition[part][member];
-
-            const isDifferent = this.hasDifferentCoordinates(
-                destinationCoordinates,
-                sourceCoordinates
-            );
-            result[part][member] = this.processCoordinates(
-                destinationPosition[part][member],
-                sourcePosition
-                    ? sourcePosition[part][member]
-                    : this.routeComputer.startingPosition[part][member]
-            );
-            result[part][member].heightLevel = heightLevels[part][member];
-            result[part][member].isDifferent = isDifferent;
+        for (const [key, destinationCoordinates] of Object.entries(destinationPosition)) {
+            const member = key as Member;
+            const sourceCoordinates = sourcePosition[member];
+            result[member] = this.processCoordinates(destinationCoordinates, sourceCoordinates, lowestCoordinate);
         }
         return result;
     }

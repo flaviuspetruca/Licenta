@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState, forwardRef, useImperativeHandle } from "react";
 import "./Table.scss";
 import { BACKEND_ENDPOINT } from "../configs";
-import { Coordinates, HoldEntity, Matrix, MatrixElement, Placement, Position } from "../types";
+import { Coordinates, HoldEntity, Matrix, MatrixElement, Position } from "../types";
 import RouteSettingTable from "./RouteSettingTable/RouteSettingTable";
 import PositionSetterBar from "./PositionSetterBar/PositionSetterBar";
 import TableRouteActions from "./TableRouteActions/TableRouteActions";
@@ -37,8 +37,6 @@ type Props = {
     routeHighlight: { positionIndex: number; member: Member } | undefined;
 };
 
-type MemberLabel = "left-hand" | "right-hand" | "left-foot" | "right-foot";
-
 // TODO: MOVE POSITION LOGIC INTO POSITION CLASS
 const TableRoute = forwardRef((props: Props, ref) => {
     const {
@@ -72,61 +70,45 @@ const TableRoute = forwardRef((props: Props, ref) => {
         return initialMatrix;
     }, [numCols, numRows]);
 
-    const _emptyNewPosition = useMemo(() => {
-        return {
-            hands: {
-                leftMember: { x: -1, y: -1 },
-                rightMember: { x: -1, y: -1 },
-            },
-            feet: {
-                leftMember: { x: -1, y: -1 },
-                rightMember: { x: -1, y: -1 },
-            },
-        };
+    const _notSetCoordinates = useMemo(() => {
+        return { x: -1, y: -1 };
     }, []);
 
-    const memberMap = new Map<MemberLabel, [string, string]>([
-        ["left-hand", ["hands", "leftMember"]],
-        ["right-hand", ["hands", "rightMember"]],
-        ["left-foot", ["feet", "leftMember"]],
-        ["right-foot", ["feet", "rightMember"]],
-    ]);
+    const _emptyNewPosition: Position = useMemo(() => {
+        return {
+            "left-hand": _notSetCoordinates,
+            "right-hand": _notSetCoordinates,
+            "left-foot": _notSetCoordinates,
+            "right-foot": _notSetCoordinates,
+        };
+    }, [_notSetCoordinates]);
 
     const [matrix, setMatrix] = useState<Matrix>(_emptyMatrix);
     const [currentPosition, setCurrentPosition] = useState<Position>(_emptyNewPosition);
     const [debugRoute, setDebugRoute] = useState<Boolean>(false);
 
-    const isValidPosition = (selectedMember: Member, position: Position) => {
-        const keys = memberMap.get(selectedMember);
-        if (!keys) {
-            return null;
-        }
-
-        const [part, member] = keys;
-        return (
-            position[part as keyof Position][member as keyof Placement].x === -1 &&
-            position[part as keyof Position][member as keyof Placement].y === -1
-        );
-    };
-
-    const _metadataMember = (selectedMember: MemberLabel) => {
-        const keys = memberMap.get(selectedMember);
-        if (!keys) {
-            return null;
-        }
-        return keys;
-    };
-
-    const _getMemberFromCurrentPositon = (coordinates: Coordinates) => {
-        for (const part in currentPosition) {
-            for (const member in currentPosition[part as keyof Position]) {
-                const placement = currentPosition[part as keyof Position][member as keyof Placement];
-                if (placement.x === coordinates.x && placement.y === coordinates.y) {
-                    return [part, member];
-                }
+    // Finds if there is a member in the current position at the given coordinates
+    const _getMemberFromCurrentPositon = (coordinatesToFind: Coordinates) => {
+        for (const [member, coordinates] of Object.entries(currentPosition)) {
+            if (coordinates.x === coordinatesToFind.x && coordinates.y === coordinatesToFind.y) {
+                return member as Member;
             }
         }
         return null;
+    };
+
+    const _getMembersWithSetCoordinates = (position: Position): Member[] => {
+        return Object.entries(position)
+            .filter(([, coordinates]) => coordinates.x !== -1 && coordinates.y !== -1)
+            .map(([member]) => member as Member);
+    };
+
+    // Function to update the current position
+    const updateCurrentPosition = (member: Member, coordinates: Coordinates) => {
+        setCurrentPosition((position) => ({
+            ...position,
+            [member]: coordinates,
+        }));
     };
 
     const handleOnClick = (e: React.MouseEvent<HTMLTableCellElement>) => {
@@ -137,39 +119,26 @@ const TableRoute = forwardRef((props: Props, ref) => {
         const col = e.currentTarget.cellIndex;
         if (matrix[row][col] === undefined) return;
 
-        const updatedCurrentPosition = { ...currentPosition };
-
+        // If no member is selected, remove the member from the current position
         if (selectedMember === undefined) {
-            const toBeRemoved = _getMemberFromCurrentPositon({
-                x: row,
-                y: col,
-            });
-            if (!toBeRemoved) return;
-            updatedCurrentPosition[toBeRemoved[0] as keyof Position][toBeRemoved[1] as keyof Placement] = {
-                x: -1,
-                y: -1,
-            };
-            setCurrentPosition(updatedCurrentPosition);
+            const memberToRemove = _getMemberFromCurrentPositon({ x: row, y: col });
+            if (!memberToRemove) return;
+            updateCurrentPosition(memberToRemove, _notSetCoordinates);
             return;
         }
 
-        const metadata = _metadataMember(selectedMember);
-        if (!metadata) return;
-        const [part, member] = metadata;
+        // If a member is selected, find if there is a member in the current position at the given coordinates
+        const memberAtDesiredCell = _getMemberFromCurrentPositon({ x: row, y: col });
 
-        // check if there already was set an action for the new position of the selected member
-        if (isValidPosition(selectedMember, currentPosition)) {
-            updatedCurrentPosition[part as keyof Position][member as keyof Placement] = {
-                x: row,
-                y: col,
-            };
-        } else {
-            updatedCurrentPosition[part as keyof Position][member as keyof Placement] = {
-                x: -1,
-                y: -1,
-            };
+        // If there is a member in the current position at the given coordinates, remove it first
+        if (memberAtDesiredCell) {
+            updateCurrentPosition(memberAtDesiredCell, _notSetCoordinates);
         }
-        setCurrentPosition(updatedCurrentPosition);
+
+        // Set the selected member to the clicked position
+        updateCurrentPosition(selectedMember, { x: row, y: col });
+
+        // Reset the selected member
         setSelectedMember(undefined);
     };
 
@@ -216,7 +185,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const handleRouteSubmit = async () => {
         const body = JSON.stringify({
             routeName,
-            matrix,
             positions,
         });
         setGenerate(true);
@@ -250,10 +218,13 @@ const TableRoute = forwardRef((props: Props, ref) => {
     };
 
     const handleSavePositions = () => {
-        if (getPositionMembers(currentPosition).length < 4) {
-            // throw error. we need all positions to select all 4
+        // TODO
+        // Check if all members in the current position have coordinates set
+        // Throw error mechanism
+        if (_getMembersWithSetCoordinates(currentPosition).length !== 4) {
             return;
         }
+
         setSelectedMember(undefined);
         setPositions([...positions, currentPosition]);
         setCurrentPosition(_emptyNewPosition);
@@ -338,7 +309,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
     const setterBarState = useMemo(() => {
         let state = PositionSetterBarState.HIDDEN;
-        console.log(startRouting, isSettingPositions, isEditing, hasAudioFiles);
         if (startRouting) {
             state = PositionSetterBarState.CLOSED;
         }
@@ -350,31 +320,8 @@ const TableRoute = forwardRef((props: Props, ref) => {
         if (hasAudioFiles && !isSettingPositions && !isEditing) {
             state = PositionSetterBarState.ALLOW_EDIT;
         }
-        console.log(state);
         return state;
     }, [startRouting, isSettingPositions, isEditing, hasAudioFiles]);
-
-    // TODO: refactor or remove
-    const getPositionMembers = (position: Position) => {
-        const members: Member[] = [];
-        const leftHand = position.hands.leftMember;
-        const rightHand = position.hands.rightMember;
-        const leftFoot = position.feet.leftMember;
-        const rightFoot = position.feet.rightMember;
-        if (leftHand.x !== -1 && leftHand.y !== -1) {
-            members.push("left-hand" as Member);
-        }
-        if (rightHand.x !== -1 && rightHand.y !== -1) {
-            members.push("right-hand" as Member);
-        }
-        if (leftFoot.x !== -1 && leftFoot.y !== -1) {
-            members.push("left-foot" as Member);
-        }
-        if (rightFoot.x !== -1 && rightFoot.y !== -1) {
-            members.push("right-foot" as Member);
-        }
-        return members;
-    };
 
     const previousPosition = useMemo(() => {
         if (currentPositionIndex === 0) {
@@ -438,7 +385,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
                     currentPositionIndex={currentPositionIndex}
                     handlePositionsSetterBarAction={handlePositionsSetterBarAction}
                     selectedMember={selectedMember}
-                    usedMembers={getPositionMembers(currentPosition)}
+                    usedMembers={_getMembersWithSetCoordinates(currentPosition)}
                     disabled={hasAudioFiles}
                 ></PositionSetterBar>
                 <TableRouteActions

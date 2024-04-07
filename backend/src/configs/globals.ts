@@ -1,5 +1,3 @@
-import { MemberLabel } from "./types";
-
 export const PORT = 3001;
 export const AUDIO_BACKEND = "http://localhost:8443";
 
@@ -10,12 +8,12 @@ export const AUDIO_PATH = "assets/audio";
 export const NEXT_POSITION_AUDIO = "next_position.mp3";
 export const END_AUDIO = "end_of_track.mp3";
 
-export const MEMBER_MAP = new Map<MemberLabel, [string, string]>([
-    ["left-hand", ["hands", "leftMember"]],
-    ["right-hand", ["hands", "rightMember"]],
-    ["left-foot", ["feet", "leftMember"]],
-    ["right-foot", ["feet", "rightMember"]],
-]);
+export const CELL_EDGE_SIZE = 30; // DISTANCE BETWEEN CENTERS OF TWO CELLS
+export const CLOSE_LIMIT_DISTANCE = Math.sqrt(2 * Math.pow(CELL_EDGE_SIZE, 2));
+export const FAR_LIMIT_DISTANCE = Math.sqrt(Math.pow(2 * CELL_EDGE_SIZE, 2) + Math.pow(CELL_EDGE_SIZE, 2));
+
+export const PANEL_HEIGHT = 10;
+export const PANEL_WIDTH = 15;
 
 export const STATUS_CODES = {
     OK: 200,

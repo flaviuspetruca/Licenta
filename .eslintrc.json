@@ -18,7 +18,5 @@
         "ecmaVersion": "latest"
     },
     "plugins": [],
-    "rules": {
-        "max-len": ["error", { "code": 120 }]
-    }
+    "rules": {}
 }

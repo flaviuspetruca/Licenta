@@ -5,11 +5,7 @@ import { ReactComponent as DownloadSvg } from "../../assets/download.svg";
 
 type Props = {
     audioFiles: { audio: string; member: string }[][];
-    setRouteHighlight: React.Dispatch<
-        React.SetStateAction<
-            { positionIndex: number; member: Member } | undefined
-        >
-    >;
+    setRouteHighlight: React.Dispatch<React.SetStateAction<{ positionIndex: number; member: Member } | undefined>>;
     transition: boolean;
 };
 
@@ -22,8 +18,7 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
         const handleRouteHighlight = () => {
             setRouteHighlight({
                 positionIndex: currentPositionIndex,
-                member: audioFiles[currentPositionIndex][currentAudioIndex]
-                    .member as Member,
+                member: audioFiles[currentPositionIndex][currentAudioIndex].member as Member,
             });
         };
 
@@ -35,21 +30,13 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
             audioPlayer.current.pause();
             handleRouteHighlight();
         }
-    }, [
-        currentAudioIndex,
-        currentPositionIndex,
-        audioFiles,
-        audioPlayer,
-        setRouteHighlight,
-    ]);
+    }, [currentAudioIndex, currentPositionIndex, audioFiles, audioPlayer, setRouteHighlight]);
 
     const handleAudioChange = (direction: "next" | "previous") => {
         const isNext = direction === "next";
-        const isAtEnd =
-            currentAudioIndex === audioFiles[currentPositionIndex].length - 1;
+        const isAtEnd = currentAudioIndex === audioFiles[currentPositionIndex].length - 1;
         const isAtStart = currentAudioIndex === 0;
-        const isLastPosition =
-            currentPositionIndex === Object.keys(audioFiles).length - 1;
+        const isLastPosition = currentPositionIndex === Object.keys(audioFiles).length - 1;
         const isFirstPosition = currentPositionIndex === 0;
 
         if ((isNext && isAtEnd) || (!isNext && isAtStart)) {
@@ -61,14 +48,10 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
                   ? Object.keys(audioFiles).length - 1
                   : currentPositionIndex - 1;
             setCurrentPositionIndex(newPositionIndex);
-            const newAudioIndex = isNext
-                ? 0
-                : audioFiles[newPositionIndex].length - 1;
+            const newAudioIndex = isNext ? 0 : audioFiles[newPositionIndex].length - 1;
             setCurrentAudioIndex(newAudioIndex);
         } else {
-            const newAudioIndex = isNext
-                ? currentAudioIndex + 1
-                : currentAudioIndex - 1;
+            const newAudioIndex = isNext ? currentAudioIndex + 1 : currentAudioIndex - 1;
             setCurrentAudioIndex(newAudioIndex);
         }
     };
@@ -118,9 +101,7 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
     const transitionClass = transition ? "animate-drop-off" : "";
 
     return (
-        <div
-            className={`w-full p-4 bg-gray-100 rounded-b-xl ${transitionClass}`}
-        >
+        <div className={`w-full p-4 bg-gray-100 rounded-b-xl ${transitionClass}`}>
             <audio
                 ref={audioPlayer}
                 controls
@@ -133,15 +114,10 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
             />
             <div className="flex justify-between">
                 <div className="flex justify-center rounded-full bg-orange-500 w-auto px-3">
-                    <p className="text-white font-bold text-center py-2">
-                        {`Position ${currentPositionIndex + 1}`}
-                    </p>
+                    <p className="text-white font-bold text-center py-2">{`Position ${currentPositionIndex + 1}`}</p>
                 </div>
                 <div className="flex space-x-3">
-                    <button
-                        className=" bg-gray-100 rounded-lg border-4 border-slate-400"
-                        onClick={handleDownloadAudio}
-                    >
+                    <button className=" bg-gray-100 rounded-lg border-4 border-slate-400" onClick={handleDownloadAudio}>
                         <DownloadSvg className="max-h-8 max-w-8" />
                     </button>
                     <button

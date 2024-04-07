@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from "react";
-import { Matrix, Placement, Position } from "../../types";
+import { Matrix, Position } from "../../types";
 import RouteSettingTableCell from "./RouteSettingTableCell";
-import { Member, getMember } from "../../utils/utils";
+import { Member } from "../../utils/utils";
 
 type Props = {
     matrix: Matrix;
@@ -24,30 +24,24 @@ const RouteSettingTable = ({
     handleRemoveClick,
     handleOnClick,
 }: Props) => {
-    const getCells = useCallback(
-        (position: Position | undefined, isHighlighted: boolean = false) => {
-            let cells: any[] = [];
-            if (position === undefined) return cells;
-
-            for (let [keyPos, placement] of Object.entries(position)) {
-                for (let [keyPlace, memberCoords] of Object.entries(placement)) {
-                    if (memberCoords.x !== -1 && memberCoords.y !== -1) {
-                        const member = getMember(keyPos as keyof Position, keyPlace as keyof Placement);
-                        cells.push({
-                            x: memberCoords.x,
-                            y: memberCoords.y,
-                            member: member,
-                            highlighted: isHighlighted && highlightedMember === member,
-                        });
-                    }
-                }
+    // Returns the cell coordinates in the table and other data about based on a Position object,
+    // which includes multiple coordinates of different members
+    const getCells = useCallback((position: Position | undefined, isHighlighted: boolean = false) => {
+        let cells: any[] = [];
+        if (position === undefined) return cells;
+        for (const [member, coordinates] of Object.entries(position)) {
+            if (coordinates.x !== -1 && coordinates.y !== -1) {
+                cells.push({
+                    x: coordinates.x,
+                    y: coordinates.y,
+                    member: member,
+                });
             }
-            return cells;
-        },
-        [highlightedMember]
-    );
+        }
+        return cells;
+    }, []);
 
-    const selectedCells = useMemo(() => getCells(currentPosition, true), [getCells, currentPosition]);
+    const currentPositionCells = useMemo(() => getCells(currentPosition, true), [getCells, currentPosition]);
     const previousPositionCells = useMemo(() => getCells(previousPosition), [getCells, previousPosition]);
 
     return (
@@ -56,13 +50,19 @@ const RouteSettingTable = ({
                 {matrix.map((row, rowIndex) => (
                     <tr key={rowIndex}>
                         {row.map((cell, colIndex) => {
-                            const selectedCell = selectedCells.find(
-                                (selectedCell) => selectedCell.x === rowIndex && selectedCell.y === colIndex
+                            const currentPositionCell = currentPositionCells.find(
+                                (currentPositionCell) =>
+                                    currentPositionCell.x === rowIndex && currentPositionCell.y === colIndex
                             );
+
                             const previousPositionCell = previousPositionCells.find(
                                 (previousPositionCell) =>
                                     previousPositionCell.x === rowIndex && previousPositionCell.y === colIndex
                             );
+
+                            const isHighlighted = highlightedMember
+                                ? highlightedMember === currentPositionCell?.member
+                                : false;
 
                             return (
                                 <td
@@ -78,8 +78,8 @@ const RouteSettingTable = ({
                                         <RouteSettingTableCell
                                             rowIndex={rowIndex}
                                             colIndex={colIndex}
-                                            selectedMember={selectedCell?.member}
-                                            highlightedCell={selectedCell?.highlighed || false}
+                                            selectedMember={currentPositionCell?.member}
+                                            highlightedCell={isHighlighted}
                                             previousPositionCell={previousPositionCell?.member}
                                             holdId={cell.hold_id}
                                             imageFormat={cell.image_format}

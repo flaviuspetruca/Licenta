@@ -33,12 +33,9 @@ export type Coordinates = {
     y: number;
 };
 
-export type Placement = {
-    leftMember: Coordinates;
-    rightMember: Coordinates;
-};
-
 export type Position = {
-    hands: Placement;
-    feet: Placement;
+    "left-hand": Coordinates;
+    "right-hand": Coordinates;
+    "left-foot": Coordinates;
+    "right-foot": Coordinates;
 };

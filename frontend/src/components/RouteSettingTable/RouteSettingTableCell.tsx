@@ -20,15 +20,9 @@ const RouteSettingTableCell = ({
     holdId,
     imageFormat,
 }: Props) => {
-    const handleOnDrag = (
-        e: React.DragEvent<HTMLDivElement>,
-        data: { rowIndex: number; colIndex: number }
-    ) => {
+    const handleOnDrag = (e: React.DragEvent<HTMLDivElement>, data: { rowIndex: number; colIndex: number }) => {
         e.dataTransfer.clearData();
-        e.dataTransfer.setData(
-            "application/from-route-setting-panel",
-            JSON.stringify({ ...data })
-        );
+        e.dataTransfer.setData("application/from-route-setting-panel", JSON.stringify({ ...data }));
     };
 
     const className = useMemo(() => {

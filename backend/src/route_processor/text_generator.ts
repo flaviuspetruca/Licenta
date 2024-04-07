@@ -1,80 +1,31 @@
-import { HeightLevel } from "../configs/types";
-import fetch from "node-fetch";
-import {
-    NEXT_POSITION_AUDIO,
-    END_AUDIO,
-    MEMBER_MAP,
-    AUDIO_BACKEND,
-} from "../configs/globals";
+import { HeightLevel, Member, MemberMoveInfo, ProcessedPosition } from "../configs/types";
 
 export class TextGenerator {
-    request_id: string;
-    parsedPositions: any[];
-    constructor(request_id: string, parsedPositions: any[]) {
-        this.request_id = request_id;
-        this.parsedPositions = parsedPositions;
+    generateTexts(processedPositions: ProcessedPosition[]) {
+        const generatedTexts = processedPositions.flatMap((position, i) => {
+            const texts = [];
+            for (const [key, info] of Object.entries(position)) {
+                const member = key as Member;
+                if (info.isDifferent) {
+                    texts.push(this.generateMemberText(member, info, i === 0));
+                }
+            }
+            return texts;
+        });
+        return generatedTexts;
     }
 
-    // TODO: Refactor this function (NEED REFACTORING OF MEMBERS STRUCTURE)
-    // TODO: Separate LOGIC for text generation and audio generation
-    async generateText() {
-        const generatedAudioData = new Map<number, Array<any>>([]);
-
-        const generatedTexts = this.parsedPositions.flatMap((parsedText, i) =>
-            Array.from(MEMBER_MAP.entries()).map(([member, [part, side]]) => {
-                const position = parsedText[part][side];
-                position.member = member;
-                return this.generateMemberText(position, i === 0);
-            })
-        );
-
-        const audioFiles = await this.textToSpeech(generatedTexts);
-
-        let audioIndex = 0;
-        for (let i = 0; i < this.parsedPositions.length; i++) {
-            const audioData: {
-                audio: string;
-                member: string;
-            }[] = [];
-
-            for (let j = 0; j < MEMBER_MAP.size; j++) {
-                audioData.push({
-                    audio: audioFiles[audioIndex],
-                    member: Array.from(MEMBER_MAP.keys())[j],
-                });
-                audioIndex++;
-            }
-
-            if (i < this.parsedPositions.length - 1) {
-                audioData.push({
-                    audio: NEXT_POSITION_AUDIO,
-                    member: "Next position",
-                });
-            } else {
-                audioData.push({
-                    audio: END_AUDIO,
-                    member: "End of track",
-                });
-            }
-
-            generatedAudioData.set(i, audioData);
-        }
-
-        return generatedAudioData;
-    }
-
-    // TODO: Add member type to the member object
-    generateMemberText(member: any, firstMove = false) {
-        if (!member.isDifferent) {
+    generateMemberText(member: Member, info: MemberMoveInfo, firstMove = false) {
+        if (!info.isDifferent) {
             if (firstMove) {
-                return `Starting hold for your ${member.member} is at your ${this.heightLevelToBodyPart(member.heightLevel)} level. The hold is ${member.distance} and to the ${member.direction}`;
+                return `Starting hold for your ${member} is at your ${this.heightLevelToBodyPart(info.heightLevel)} level. The hold is ${info.distance} and to the ${info.direction}`;
             }
-            return `Keep your ${member.member} in the same position`;
+            return `Keep your ${member} in the same position`;
         }
         if (firstMove) {
-            return `Starting hold for your ${member.member} is at your ${this.heightLevelToBodyPart(member.heightLevel)} level. The hold is ${member.distance} and to the ${member.direction}`;
+            return `Starting hold for your ${member} is at your ${this.heightLevelToBodyPart(info.heightLevel)} level. The hold is ${info.distance} and to the ${info.direction}`;
         } else {
-            return `Place your ${member.member} at your ${this.heightLevelToBodyPart(member.heightLevel)} level. The hold is ${member.distance} and to the ${member.direction}`;
+            return `Place your ${member} at your ${this.heightLevelToBodyPart(info.heightLevel)} level. The hold is ${info.distance} and to the ${info.direction}`;
         }
     }
 
@@ -95,23 +46,5 @@ export class TextGenerator {
             case HeightLevel.OUT_OF_REACH:
                 return "out of reach";
         }
-    }
-
-    // TODO: ADD URL TO CONFIG
-    async textToSpeech(generateMemberTexts: string[]) {
-        const response = await fetch(AUDIO_BACKEND + "/text2speech", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                texts: generateMemberTexts,
-            }),
-        });
-        if (response.status !== 200) {
-            throw new Error("Failed to generate audio");
-        }
-        const audioFiles = (await response.json()) as string[];
-        return audioFiles;
     }
 }

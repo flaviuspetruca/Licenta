@@ -31,14 +31,32 @@ export type Coordinates = {
     y: number;
 };
 
-export type Placement = {
-    leftMember: Coordinates;
-    rightMember: Coordinates;
-};
+export enum Member {
+    LEFT_HAND = "left-hand",
+    RIGHT_HAND = "right-hand",
+    LEFT_FOOT = "left-foot",
+    RIGHT_FOOT = "right-foot",
+}
 
 export type Position = {
-    hands: Placement;
-    feet: Placement;
+    [Member.LEFT_HAND]: Coordinates;
+    [Member.RIGHT_HAND]: Coordinates;
+    [Member.LEFT_FOOT]: Coordinates;
+    [Member.RIGHT_FOOT]: Coordinates;
+};
+
+export type MemberMoveInfo = {
+    distance: undefined | string;
+    direction: undefined | string;
+    heightLevel: undefined | number;
+    isDifferent: undefined | boolean;
+};
+
+export type ProcessedPosition = {
+    [Member.LEFT_HAND]: MemberMoveInfo;
+    [Member.RIGHT_HAND]: MemberMoveInfo;
+    [Member.LEFT_FOOT]: MemberMoveInfo;
+    [Member.RIGHT_FOOT]: MemberMoveInfo;
 };
 
 // LOGIC TYPES
@@ -61,19 +79,6 @@ export enum Direction {
     LEFT = "left",
     RIGHT = "right",
 }
-
-export enum Member {
-    LEFT_HAND = "left-hand",
-    RIGHT_HAND = "right-hand",
-    LEFT_FOOT = "left-foot",
-    RIGHT_FOOT = "right-foot",
-}
-
-export type MemberLabel =
-    | "left-hand"
-    | "right-hand"
-    | "left-foot"
-    | "right-foot";
 
 export enum ApplicationState {
     "DEV",

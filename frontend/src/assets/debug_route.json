@@ -1,91 +1,11 @@
 {
     "routeName": "",
     "matrix": [
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
+        [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
         [
             null,
             null,
@@ -258,69 +178,57 @@
     ],
     "positions": [
         {
-            "hands": {
-                "leftMember": {
-                    "x": 7,
-                    "y": 3
-                },
-                "rightMember": {
-                    "x": 7,
-                    "y": 5
-                }
+            "left-hand": {
+                "x": 7,
+                "y": 3
             },
-            "feet": {
-                "leftMember": {
-                    "x": 9,
-                    "y": 3
-                },
-                "rightMember": {
-                    "x": 9,
-                    "y": 5
-                }
+            "right-hand": {
+                "x": 7,
+                "y": 5
+            },
+            "left-foot": {
+                "x": 9,
+                "y": 3
+            },
+            "right-foot": {
+                "x": 9,
+                "y": 5
             }
         },
         {
-            "hands": {
-                "leftMember": {
-                    "x": 6,
-                    "y": 5
-                },
-                "rightMember": {
-                    "x": 6,
-                    "y": 7
-                }
+            "left-hand": {
+                "x": 6,
+                "y": 5
             },
-            "feet": {
-                "leftMember": {
-                    "x": 8,
-                    "y": 5
-                },
-                "rightMember": {
-                    "x": 7,
-                    "y": 6
-                }
+            "right-hand": {
+                "x": 6,
+                "y": 7
+            },
+            "left-foot": {
+                "x": 8,
+                "y": 5
+            },
+            "right-foot": {
+                "x": 7,
+                "y": 6
             }
         },
         {
-            "hands": {
-                "leftMember": {
-                    "x": 5,
-                    "y": 6
-                },
-                "rightMember": {
-                    "x": 5,
-                    "y": 8
-                }
+            "left-hand": {
+                "x": 5,
+                "y": 6
             },
-            "feet": {
-                "leftMember": {
-                    "x": 8,
-                    "y": 7
-                },
-                "rightMember": {
-                    "x": 7,
-                    "y": 8
-                }
+            "right-hand": {
+                "x": 5,
+                "y": 8
+            },
+            "left-foot": {
+                "x": 8,
+                "y": 7
+            },
+            "right-foot": {
+                "x": 7,
+                "y": 8
             }
         }
     ]
