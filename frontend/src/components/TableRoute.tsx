@@ -8,6 +8,7 @@ import { fetchFn } from "../utils/http";
 import debugRouteJson from "../assets/debug_route.json";
 import TableRouteControls from "./TableRouteControls/TableRouteControls";
 import { useParams } from "react-router-dom";
+import { useAlert, AlertType } from "./UI/AlertProvider";
 
 export enum PositionSetterBarState {
     HIDDEN = "HIDDEN",
@@ -39,7 +40,6 @@ type Props = {
     setRouteHighlight: React.Dispatch<React.SetStateAction<{ positionIndex: number; member: Member } | undefined>>;
 };
 
-// TODO: MOVE POSITION LOGIC INTO POSITION CLASS
 const TableRoute = forwardRef((props: Props, ref) => {
     const {
         openModal,
@@ -52,13 +52,14 @@ const TableRoute = forwardRef((props: Props, ref) => {
         routeHighlight,
         setRouteHighlight,
     }: Props = props;
+    const { id } = useParams();
+    const { showAlert } = useAlert();
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
     const [isSettingPositions, setIsSettingPositions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedMember, setSelectedMember] = useState<Member>();
     const [positions, setPositions] = useState<Position[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
-    const { id } = useParams();
 
     const _emptyMatrix = useMemo(() => {
         const initialMatrix = [];
@@ -206,14 +207,13 @@ const TableRoute = forwardRef((props: Props, ref) => {
         if (response.ok) {
             setIsGenerating(false);
             const data = await response.json();
-            // added to history routes
             setAudioFiles(data);
             setIsSettingPositions(false);
             setIsEditing(false);
         } else {
+            showAlert({ title: "Error", description: "Failed to generate route", type: AlertType.ERROR });
             setIsGenerating(false);
             setAudioFiles([]);
-            console.log("Error submitting the route" + response.status);
         }
     };
 
@@ -226,10 +226,8 @@ const TableRoute = forwardRef((props: Props, ref) => {
     };
 
     const handleSavePositions = () => {
-        // TODO
-        // Check if all members in the current position have coordinates set
-        // Throw error mechanism
         if (usedMembers.length !== 4) {
+            showAlert({ title: "Error", description: "All members must be set", type: AlertType.ERROR });
             return;
         }
 

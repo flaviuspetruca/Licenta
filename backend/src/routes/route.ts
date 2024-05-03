@@ -33,7 +33,6 @@ const validateRoute = (req: Request, res: Response, next: NextFunction) => {
 router.get("/holds-info", async (req: Request, res: Response) => {
     req.context.lgr.debug("Sending holds to client...");
     const holds = await findAllHolds();
-
     res.status(STATUS_CODES.OK).json(holds);
 });
 

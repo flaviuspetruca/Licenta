@@ -3,7 +3,7 @@ import Spinner from "./UI/Spinner";
 
 type LoadingProps = {
     isLoading: boolean;
-    children: JSX.Element | JSX.Element[];
+    children: React.ReactNode;
 };
 
 const Loading = ({ isLoading, children }: LoadingProps) => {

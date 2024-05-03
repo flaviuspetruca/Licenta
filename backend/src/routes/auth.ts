@@ -24,7 +24,7 @@ router.post("/register", async (req: Request, res: Response) => {
     const user = await insertUser(username, await hashPassword(password));
     if (!user) {
         req.context.lgr.error("Failed to register user");
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to register user");
+        res.status(STATUS_CODES.CONFLICT).send("Failed to register user");
         return;
     }
     const token = jwt.sign({ username, role: user.role }, process.env.JWT_SECRET, { expiresIn: "24h" });

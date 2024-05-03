@@ -4,6 +4,7 @@ import { Member } from "../../utils/utils";
 import { fetchFn } from "../../utils/http";
 import { ReactComponent as DownloadSvg } from "../../assets/download.svg";
 import Spinner from "../UI/Spinner";
+import { AlertType, useAlert } from "../UI/AlertProvider";
 
 type Props = {
     audioFiles: { audio: string; member: string }[][];
@@ -14,6 +15,7 @@ type Props = {
 const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
     const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
+    const { showAlert } = useAlert();
     const audioPlayer = useRef<HTMLAudioElement>(null);
 
     const [downloading, setDownloading] = useState(false);
@@ -78,13 +80,12 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
                 "Access-Control-Allow-Origin": "*",
             },
         });
+        setDownloading(false);
 
-        // TODO: ADD ERROR HANDLING
         if (!response.ok) {
-            console.error("Failed to download audio");
+            showAlert({ title: "Error", description: "Failed to download audio", type: AlertType.ERROR });
             return;
         }
-        setDownloading(false);
 
         const blob = await response.blob();
         // Extract the filename from the URL

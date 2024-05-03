@@ -13,13 +13,17 @@ import Navbar from "./components/NavBar";
 import { Outlet } from "react-router-dom";
 import GymAdministrator from "./components/Gyms/GymAdministrator";
 import Gym from "./components/Gyms/Gym";
+import { ErrorBoundary } from "react-error-boundary";
+import { AlertProvider } from "./components/UI/AlertProvider";
 
 const NavbarWrapper = () => {
     return (
-        <>
-            <Navbar />
-            <Outlet />
-        </>
+        <ErrorBoundary fallback={<div>Something went wrong</div>}>
+            <AlertProvider>
+                <Navbar />
+                <Outlet />
+            </AlertProvider>
+        </ErrorBoundary>
     );
 };
 const router = createBrowserRouter([
@@ -36,8 +40,22 @@ const router = createBrowserRouter([
         ],
         errorElement: <NotFound />,
     },
-    { path: "login", element: <Login /> },
-    { path: "register", element: <Register /> },
+    {
+        path: "/login",
+        element: (
+            <AlertProvider>
+                <Login />
+            </AlertProvider>
+        ),
+    },
+    {
+        path: "/register",
+        element: (
+            <AlertProvider>
+                <Register />
+            </AlertProvider>
+        ),
+    },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);

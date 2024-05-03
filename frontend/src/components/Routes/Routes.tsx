@@ -1,29 +1,31 @@
 import { useEffect, useState } from "react";
 import { BACKEND_ENDPOINT } from "../../configs";
-import Loading from "../Loading";
 import { RouteQueryData } from "./Route";
 import { buildHttpHeaders, fetchFn } from "../../utils/http";
 import { RouteCard } from "./RouteCard";
+import { useAlert, AlertType } from "../UI/AlertProvider";
+import LoadingWrapper from "../UI/LoadingWrapper";
 
 const Routes = () => {
     const [data, setData] = useState<RouteQueryData[]>([]);
     const [loading, setLoading] = useState(true);
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         async function getGyms() {
-            try {
-                setLoading(true);
-                const response = await fetchFn(`${BACKEND_ENDPOINT}/routes`, buildHttpHeaders());
-                const data = await response.json();
-                setData([...data]);
-            } catch (error) {
-                // TODO: handle error
-                setData([]);
-            }
+            setLoading(true);
+            const response = await fetchFn(`${BACKEND_ENDPOINT}/routes`, buildHttpHeaders());
             setLoading(false);
+            if (!response.ok) {
+                setData([]);
+                showAlert({ title: "Error", description: "Failed to retrieve routes", type: AlertType.ERROR });
+                return;
+            }
+            const data = await response.json();
+            setData([...data]);
         }
         getGyms();
-    }, []);
+    }, [showAlert]);
 
     const renderContent = data.length ? (
         data.map((data) => <RouteCard route={data} />)
@@ -35,14 +37,9 @@ const Routes = () => {
         </section>
     );
     return (
-        <div className="wrapper">
-            <h1 className="text-8xl font-bold leading-7 ml-10 mb-10 text-gray-900 sm:truncate sm:text-8xl sm:tracking-tight">
-                All Routes
-            </h1>
-            <div className="p-5">
-                <Loading isLoading={loading}>{renderContent}</Loading>
-            </div>
-        </div>
+        <LoadingWrapper isLoading={loading} text={"All routes"}>
+            {renderContent}
+        </LoadingWrapper>
     );
 };
 

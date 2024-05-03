@@ -6,12 +6,13 @@ import { BACKEND_ENDPOINT } from "../configs";
 import Player from "./Player/Player";
 import { Member } from "../utils/utils";
 import { buildHttpHeaders, fetchFn } from "../utils/http";
-import { ErrorBoundary } from "react-error-boundary";
 import AppModal from "./AppModal";
+import { AlertType, useAlert } from "./UI/AlertProvider";
 
 const MainPanel = () => {
     const tableRouteRef = useRef<{ resetPanel: () => void }>();
     const appModalRef = useRef<{ openModal: () => void }>();
+    const { showAlert } = useAlert();
 
     const [holds, setHolds] = useState<Hold[]>([]);
     const [audioFiles, setAudioFiles] = useState<{ audio: string; member: string }[][]>([]);
@@ -28,21 +29,19 @@ const MainPanel = () => {
 
     useEffect(() => {
         async function getHolds() {
-            try {
-                const response = await fetchFn(`${BACKEND_ENDPOINT}/holds-info`, buildHttpHeaders());
-                const data: Hold[] = await response.json();
-                setHolds([...data]);
-            } catch (error) {
-                // TODO: handle error
-                console.error("Error fetching holds:", error);
+            const response = await fetchFn(`${BACKEND_ENDPOINT}/holds-info`, buildHttpHeaders());
+            if (!response.ok) {
+                showAlert({ title: "Error", description: "Failed to get holds", type: AlertType.ERROR });
                 setHolds([]);
             }
+            const data: Hold[] = await response.json();
+            setHolds([...data]);
         }
         getHolds();
-    }, []);
+    }, [showAlert]);
 
     return (
-        <ErrorBoundary fallback={<div>Something went wrong</div>}>
+        <>
             <AppModal ref={appModalRef} resetPanel={tableRouteRef.current?.resetPanel} />
             <div className="main-container">
                 <div
@@ -81,7 +80,7 @@ const MainPanel = () => {
                     setRouteHighlight={setRouteHighlight}
                 />
             </div>
-        </ErrorBoundary>
+        </>
     );
 };
 

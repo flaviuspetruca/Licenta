@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { BACKEND_ENDPOINT } from "../../configs";
 import { GymCard } from "./GymCard";
-import Loading from "../Loading";
 import { buildHttpHeaders, fetchFn } from "../../utils/http";
 import { RouteQueryData } from "../Routes/Route";
+import LoadingWrapper from "../UI/LoadingWrapper";
+import { useAlert, AlertType } from "../UI/AlertProvider";
 
 export type GymQueryData = {
     id: number;
@@ -16,23 +17,24 @@ export type GymQueryData = {
 
 const Gyms = () => {
     const [loading, setLoading] = useState(true);
+    const { showAlert } = useAlert();
     const [gyms, setGyms] = useState<GymQueryData[]>([]);
 
     useEffect(() => {
         async function getGyms() {
-            try {
-                setLoading(true);
-                const response = await fetchFn(`${BACKEND_ENDPOINT}/gyms`, buildHttpHeaders());
-                const data = await response.json();
-                setGyms([...data]);
-            } catch (error) {
-                // TODO: handle error
-                setGyms([]);
-            }
+            setLoading(true);
+            const response = await fetchFn(`${BACKEND_ENDPOINT}/gyms`, buildHttpHeaders());
             setLoading(false);
+            if (!response.ok) {
+                setGyms([]);
+                showAlert({ title: "Error", description: "Failed to retrieve gyms", type: AlertType.ERROR });
+                return;
+            }
+            const data = await response.json();
+            setGyms([...data]);
         }
         getGyms();
-    }, []);
+    }, [showAlert]);
 
     const renderContent = gyms.length ? (
         gyms.map((gym) => <GymCard gym={gym} />)
@@ -45,14 +47,9 @@ const Gyms = () => {
     );
 
     return (
-        <div className="wrapper">
-            <h1 className="text-8xl font-bold leading-7 ml-10 mb-10 text-gray-900 sm:truncate sm:text-8xl sm:tracking-tight">
-                Gyms
-            </h1>
-            <div className="p-5">
-                <Loading isLoading={loading}>{renderContent}</Loading>
-            </div>
-        </div>
+        <LoadingWrapper isLoading={loading} text={"Gyms"}>
+            {renderContent}
+        </LoadingWrapper>
     );
 };
 

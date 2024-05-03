@@ -1,9 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_ENDPOINT } from "../../configs";
 import { fetchFn } from "../../utils/http";
+import { AlertType, useAlert } from "../UI/AlertProvider";
 
 export default function Register() {
     const navigate = useNavigate();
+    const { showAlert } = useAlert();
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -19,8 +21,12 @@ export default function Register() {
             const token = await response.text();
             localStorage.setItem("token", token);
             navigate("/routes");
-        } else {
-            // TODO: handle error
+        } else if (response.status === 409) {
+            showAlert({
+                title: "Error",
+                description: "There already is a user with this username",
+                type: AlertType.ERROR,
+            });
         }
     };
 
@@ -76,7 +82,7 @@ export default function Register() {
 
                     <p className="mt-10 text-center text-sm text-gray-500">
                         <Link to="/login" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
-                            Already have an account? Sign in
+                            Already have an account?
                         </Link>
                     </p>
                 </div>

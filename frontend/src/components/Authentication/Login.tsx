@@ -1,9 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_ENDPOINT } from "../../configs";
 import { fetchFn } from "../../utils/http";
+import { AlertType, useAlert } from "../UI/AlertProvider";
 
 const Login = () => {
     const navigate = useNavigate();
+    const { showAlert } = useAlert();
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -20,7 +22,7 @@ const Login = () => {
             localStorage.setItem("token", token);
             navigate("/routes");
         } else {
-            // TODO: handle error
+            showAlert({ title: "Error", description: "Invalid credentials", type: AlertType.ERROR });
         }
     };
 
