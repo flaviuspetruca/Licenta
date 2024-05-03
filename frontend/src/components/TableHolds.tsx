@@ -6,7 +6,7 @@ import { getHoldImageURL } from "../utils/utils";
 type Props = {
     numRows: number;
     numCols: number;
-    holds: Map<string, Hold>;
+    holds: Hold[];
     startRouting: boolean;
     setStartRouting: React.Dispatch<React.SetStateAction<boolean>>;
     routeName: string;
@@ -33,7 +33,7 @@ const TableHolds = ({
             const row = [];
             for (let j = 0; j < numCols; j++) {
                 const hold_id = `texture_${numRows * i + j}`;
-                const hold = holds.get(hold_id);
+                const hold = holds.find((hold) => hold.image_name === hold_id);
                 if (hold) {
                     const hold_image_format = `${hold?.image_format}`;
                     row.push(

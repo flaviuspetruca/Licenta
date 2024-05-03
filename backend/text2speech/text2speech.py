@@ -84,4 +84,4 @@ def text2speech(dir_path, index: int, text: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run("text2speech:app", port=8443, reload=True)
+    uvicorn.run("text2speech:app", port=8443)

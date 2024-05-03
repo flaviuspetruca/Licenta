@@ -1,6 +1,7 @@
 declare module "*.png";
 
 export type Hold = {
+    image_name: string;
     image_format: string;
     difficulty: Difficulty;
     type: HoldType;
@@ -25,7 +26,7 @@ export type HoldType =
     | "Volume"
     | "Cubby";
 
-export type MatrixElement = HoldEntity | undefined;
+export type MatrixElement = HoldEntity | null;
 export type Matrix = MatrixElement[][];
 
 export type Coordinates = {
@@ -39,3 +40,12 @@ export type Position = {
     "left-foot": Coordinates;
     "right-foot": Coordinates;
 };
+
+export type GymTypeDB = {
+    id: number;
+    admin_id: number;
+    location: string;
+    name: string;
+};
+
+export type RouteTypeDB = { id: number; user_id: number; dir_id: string; gym_id: number; name: string };

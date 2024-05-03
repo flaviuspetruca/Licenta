@@ -4,14 +4,14 @@ import RouteSettingTableCell from "./RouteSettingTableCell";
 import { Member } from "../../utils/utils";
 
 type Props = {
-    matrix: Matrix;
-    currentPosition: Position;
-    previousPosition: Position | undefined;
-    highlightedMember: Member | undefined;
-    handleDragOver: (e: React.DragEvent<HTMLTableElement>) => void;
-    handleOnDrop: (e: React.DragEvent<HTMLTableCellElement>) => void;
-    handleRemoveClick: (e: React.MouseEvent<HTMLTableCellElement>) => void;
-    handleOnClick: (e: React.MouseEvent<HTMLTableCellElement>) => void;
+    matrix: Matrix | undefined;
+    currentPosition?: Position | undefined;
+    previousPosition?: Position | undefined;
+    highlightedMember?: Member | undefined;
+    handleDragOver?: (e: React.DragEvent<HTMLTableElement>) => void;
+    handleOnDrop?: (e: React.DragEvent<HTMLTableCellElement>) => void;
+    handleRemoveClick?: (e: React.MouseEvent<HTMLTableCellElement>) => void;
+    handleOnClick?: (e: React.MouseEvent<HTMLTableCellElement>) => void;
 };
 
 const RouteSettingTable = ({
@@ -48,7 +48,7 @@ const RouteSettingTable = ({
         <div className="table-wrapper">
             <table className="table-route border-y-yellow-300" onDragOver={handleDragOver}>
                 <tbody>
-                    {matrix.map((row, rowIndex) => (
+                    {matrix?.map((row, rowIndex) => (
                         <tr key={rowIndex}>
                             {row.map((cell, colIndex) => {
                                 const currentPositionCell = currentPositionCells.find(
@@ -73,7 +73,7 @@ const RouteSettingTable = ({
                                         onDoubleClick={handleRemoveClick}
                                         onClick={handleOnClick}
                                     >
-                                        {cell === undefined ? (
+                                        {!cell ? (
                                             cell
                                         ) : (
                                             <RouteSettingTableCell
@@ -82,8 +82,8 @@ const RouteSettingTable = ({
                                                 selectedMember={currentPositionCell?.member}
                                                 highlightedCell={isHighlighted}
                                                 previousPositionCell={previousPositionCell?.member}
-                                                holdId={cell.hold_id}
-                                                imageFormat={cell.image_format}
+                                                holdId={cell?.hold_id}
+                                                imageFormat={cell?.image_format}
                                             />
                                         )}
                                     </td>

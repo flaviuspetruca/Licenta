@@ -1,48 +1,40 @@
+import express from "express";
 import path from "path";
-import cors from "cors";
+import "dotenv/config";
 import { fileURLToPath } from "url";
-import express, { Response } from "express";
-import { Request } from "./configs/types";
-import { AUDIO_PATH, IMAGE_HOLDS_PATH, PORT, STATUS_CODES } from "./configs/globals";
-import holds from "./configs/holds.json";
+import { PORT } from "./configs/globals";
 import lgr from "./utils/logger";
-import { uuid_mapper } from "./utils/http";
-import RouteProcessor from "./route_processor/route_processor";
+import db from "./db/database";
+import "./db/assosciations";
+import setupMiddleware from "./middleware/middleware";
 
 export const app = express();
+export const router = express.Router();
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-app.use(uuid_mapper);
-app.use(cors());
-app.use(express.json());
-app.use("/holds-images", express.static(path.join(__dirname, IMAGE_HOLDS_PATH)));
-app.use("/audio", express.static(path.join(__dirname, AUDIO_PATH)));
+const initApp = async () => {
+    try {
+        await db.authenticate();
+        lgr.iprint("Connection has been established successfully.");
+    } catch (error) {
+        console.error("Unable to connect to the database:", error.original);
+        return;
+    }
 
-app.listen(PORT, () => {
-    lgr.print(`Server is running on port ${PORT}`);
-});
+    try {
+        setupMiddleware(app);
+    } catch (error) {
+        lgr.ierror("Error setting up middleware:", error);
+        return;
+    }
 
-app.get("/", (req: Request, res: Response) => {
-    lgr.debug(req, "Server is running...");
-    res.status(STATUS_CODES.OK).send("Server is running...");
-});
+    try {
+        app.listen(PORT, () => {
+            lgr.iprint(`Server is running on port ${PORT}`);
+        });
+    } catch (error) {
+        lgr.ierror("Error starting server:", error);
+    }
+};
 
-app.get("/holds-info", (req: Request, res: Response) => {
-    lgr.debug(req, "Sending holds to client...");
-    res.status(STATUS_CODES.OK).json(holds);
-});
-
-app.post("/route", async (req: Request, res: Response) => {
-    const route = req.body;
-    const processor = new RouteProcessor();
-    const { audiosPath, audioFiles } = await processor.processRoute(route);
-
-    // DEBUG PURPOSES ONLY
-    // write to json file the array of audio files
-    //const debugFiles = readFileSync("audioFiles.json", "utf-8");
-    //const audioFiles = JSON.parse(debugFiles);
-
-    lgr.debug(req, "Received route");
-    lgr.debug(req, `Parsing...`);
-    res.status(STATUS_CODES.OK).json(Object.fromEntries(audioFiles));
-});
+initApp();

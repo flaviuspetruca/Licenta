@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AUDIO_BACKEND_ENDPOINT, BACKEND_ENDPOINT } from "../../configs";
 import { Member } from "../../utils/utils";
+import { fetchFn } from "../../utils/http";
 import { ReactComponent as DownloadSvg } from "../../assets/download.svg";
 import Spinner from "../UI/Spinner";
 
@@ -72,7 +73,7 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
         const url = new URL(AUDIO_BACKEND_ENDPOINT);
         url.pathname = "/merge-audio";
         url.searchParams.append("directory_path", getAudioDirectory());
-        const response = await fetch(url.toString(), {
+        const response = await fetchFn(url.toString(), {
             headers: {
                 "Access-Control-Allow-Origin": "*",
             },
@@ -122,16 +123,23 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
                     <p className="text-white text-sm font-semibold text-center py-2">{`Position ${currentPositionIndex + 1}`}</p>
                 </div>
                 <div className="flex space-x-1">
-                    <button className="btn btn-square bg-gray-100" onClick={handleDownloadAudio}>
+                    <button
+                        aria-label="Download audio"
+                        title="Download audio"
+                        className="btn btn-square bg-gray-100"
+                        onClick={handleDownloadAudio}
+                    >
                         {!downloading ? <DownloadSvg className="max-h-8 max-w-8" /> : <Spinner />}
                     </button>
                     <button
+                        aria-label="Previous audio"
                         onClick={handlePreviousAudio}
                         className="btn px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
                     >
                         Previous
                     </button>
                     <button
+                        aria-label="Next audio"
                         onClick={handleNextAudio}
                         className="btn px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
                     >

@@ -51,7 +51,7 @@ const RouteSettingTableCell = ({
             {(selectedMember || previousPositionCell) && (
                 <img
                     draggable={false}
-                    src={`outputs/${selectedMember || previousPositionCell}.png`}
+                    src={`/outputs/${selectedMember || previousPositionCell}.png`}
                     alt={selectedMember || previousPositionCell}
                     className="selected-hold-member-image"
                 ></img>

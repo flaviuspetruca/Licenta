@@ -19,7 +19,7 @@ const AppModal = forwardRef(({ resetPanel }: Props, ref) => {
 
     return (
         <dialog ref={dialogRef} className="modal">
-            <div className="flex justify-end gap-5 modal-box">
+            <div className="flex justify-end gap-2 modal-box">
                 <h3 className="text-2xl font-bold mb-10">Esti sigur ca vrei sa resetezi panoul?</h3>
                 <div className="modal-action">
                     <form method="dialog">

@@ -1,14 +1,17 @@
 import fetch from "node-fetch";
 import { NEXT_POSITION_AUDIO, END_AUDIO, AUDIO_BACKEND } from "../configs/globals";
 import { ProcessedPosition } from "../configs/types";
+import { Request } from "../utils/http";
+import { Actor } from "../actor";
 
-export class AudioGenerator {
-    async generateAudioData(generatedTexts: string[], processedPositions: ProcessedPosition[]) {
+export class AudioGenerator extends Actor {
+    async generateAudioData(req: Request, generatedTexts: string[], processedPositions: ProcessedPosition[]) {
+        this.handle_request(req);
         const audioFiles = await this.textToSpeech(generatedTexts);
         const dirName = audioFiles[0].split("/")[0];
         return {
             audiosPath: dirName,
-            audioFiles: this.buildAudioData(audioFiles, processedPositions),
+            audioFiles: AudioGenerator.buildAudioData(audioFiles, processedPositions),
         };
     }
 
@@ -29,7 +32,7 @@ export class AudioGenerator {
         return audioFiles;
     }
 
-    buildAudioData(audioFiles: string[], processedPositions: ProcessedPosition[]) {
+    public static buildAudioData(audioFiles: string[], processedPositions: ProcessedPosition[]) {
         const generatedAudioData = new Map<number, { audio: string; member: string }[]>([]);
         for (let i = 0; i < processedPositions.length; i++) {
             const audioData: {

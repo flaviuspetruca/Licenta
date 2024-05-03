@@ -5,6 +5,7 @@ import { Hold } from "../types";
 import { BACKEND_ENDPOINT } from "../configs";
 import Player from "./Player/Player";
 import { Member } from "../utils/utils";
+import { buildHttpHeaders, fetchFn } from "../utils/http";
 import { ErrorBoundary } from "react-error-boundary";
 import AppModal from "./AppModal";
 
@@ -12,7 +13,7 @@ const MainPanel = () => {
     const tableRouteRef = useRef<{ resetPanel: () => void }>();
     const appModalRef = useRef<{ openModal: () => void }>();
 
-    const [holds, setHolds] = useState<Map<string, Hold>>(new Map());
+    const [holds, setHolds] = useState<Hold[]>([]);
     const [audioFiles, setAudioFiles] = useState<{ audio: string; member: string }[][]>([]);
     const [startRouting, setStartRouting] = useState<boolean>(false);
     const [routeName, setRouteName] = useState<string>("");
@@ -28,22 +29,13 @@ const MainPanel = () => {
     useEffect(() => {
         async function getHolds() {
             try {
-                const response = await fetch(`${BACKEND_ENDPOINT}/holds-info`);
-                const data = await response.json();
-                setHolds((prevHolds) => {
-                    if (JSON.stringify(prevHolds) !== JSON.stringify(data)) {
-                        const holdsMapStructure: Map<string, Hold> = new Map();
-                        for (const [key, value] of Object.entries<Hold>(data)) {
-                            holdsMapStructure.set(key, value);
-                        }
-                        return holdsMapStructure;
-                    } else {
-                        return prevHolds;
-                    }
-                });
+                const response = await fetchFn(`${BACKEND_ENDPOINT}/holds-info`, buildHttpHeaders());
+                const data: Hold[] = await response.json();
+                setHolds([...data]);
             } catch (error) {
+                // TODO: handle error
                 console.error("Error fetching holds:", error);
-                setHolds(new Map());
+                setHolds([]);
             }
         }
         getHolds();

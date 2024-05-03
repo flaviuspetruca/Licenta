@@ -14,11 +14,3 @@ export const FAR_LIMIT_DISTANCE = Math.sqrt(Math.pow(2 * CELL_EDGE_SIZE, 2) + Ma
 
 export const PANEL_HEIGHT = 10;
 export const PANEL_WIDTH = 15;
-
-export const STATUS_CODES = {
-    OK: 200,
-    CREATED: 201,
-    BAD_REQUEST: 400,
-    NOT_FOUND: 404,
-    INTERNAL_SERVER_ERROR: 500,
-};

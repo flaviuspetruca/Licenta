@@ -33,7 +33,7 @@ const HoldOption = ({ selectedMember, setSelectedMember, member, isUsed }: Props
             onClick={handleSelectedMember}
             disabled={isUsed}
         >
-            <img draggable={false} src={`outputs/${member}.png`} alt={member} className="hold-image"></img>
+            <img draggable={false} src={`/outputs/${member}.png`} alt={member} className="hold-image"></img>
         </button>
     );
 };

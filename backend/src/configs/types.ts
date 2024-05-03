@@ -80,10 +80,7 @@ export enum Direction {
     RIGHT = "right",
 }
 
-export enum ApplicationState {
+export enum APP_ENV {
     "DEV",
     "PROD",
 }
-
-import { Request as ExpressRequest } from "express";
-export type Request = ExpressRequest & { id: string };

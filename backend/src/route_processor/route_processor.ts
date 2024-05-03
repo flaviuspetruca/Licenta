@@ -2,10 +2,14 @@ import util from "util";
 import fs from "fs";
 import { __dirname } from "../index";
 import { AUDIO_PATH, PANEL_HEIGHT } from "../configs/globals";
+import { Request } from "../utils/http";
 import { Coordinates, Matrix, Member, MemberMoveInfo, Position, ProcessedPosition } from "../configs/types";
 import { AudioGenerator } from "./audio_generator";
 import RouteComputer from "./compute";
 import { TextGenerator } from "./text_generator";
+import { insertRoute } from "../models/Route";
+import { findUser } from "../models/User";
+import { Actor } from "../actor";
 
 const writeFileAsync = util.promisify(fs.writeFile);
 
@@ -15,25 +19,33 @@ type RouteProcessorProps = {
     positions: Position[];
 };
 
-class RouteProcessor {
+class RouteProcessor extends Actor {
     routeComputer: RouteComputer;
     textGenerator: TextGenerator;
     audioGenerator: AudioGenerator;
 
     constructor() {
+        super();
         this.routeComputer = new RouteComputer();
         this.audioGenerator = new AudioGenerator();
         this.textGenerator = new TextGenerator();
     }
 
-    async processRoute({ routeName, matrix, positions }: RouteProcessorProps) {
+    async processRoute(req: Request, { routeName, matrix, positions }: RouteProcessorProps) {
+        this.handle_request(req);
         const processedPositions = this.processPositions(positions);
-        const generatedTexts = this.textGenerator.generateTexts(processedPositions);
+        const generatedTexts = this.textGenerator.generateTexts(req, processedPositions);
         const { audiosPath, audioFiles } = await this.audioGenerator.generateAudioData(
+            req,
             generatedTexts,
             processedPositions
         );
         this._writeRouteInfoToFiles(`${__dirname}/${AUDIO_PATH}/${audiosPath}`, routeName, matrix, positions);
+        const db_user = await findUser(req.context.user.username);
+        const route = await insertRoute(Number(req.params.id), db_user.id, audiosPath, routeName || null);
+        if (!route) {
+            // throw error
+        }
         return { audiosPath, audioFiles };
     }
 
@@ -83,7 +95,6 @@ class RouteProcessor {
         const fileWritePromises = [
             writeFileAsync(`${path}/matrix.json`, JSON.stringify(matrix)),
             writeFileAsync(`${path}/positions.json`, JSON.stringify(positions)),
-            writeFileAsync(`${path}/metadata.json`, JSON.stringify({ routeName })),
         ];
 
         Promise.all(fileWritePromises).catch((error) => {
@@ -156,4 +167,5 @@ class RouteProcessor {
     }
 }
 
-export default RouteProcessor;
+const processor = new RouteProcessor();
+export default processor;

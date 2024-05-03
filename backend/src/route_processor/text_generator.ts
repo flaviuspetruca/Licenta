@@ -1,7 +1,14 @@
+import { Actor } from "../actor";
+import { Request } from "../utils/http";
 import { HeightLevel, Member, MemberMoveInfo, ProcessedPosition } from "../configs/types";
 
-export class TextGenerator {
-    generateTexts(processedPositions: ProcessedPosition[]) {
+export class TextGenerator extends Actor {
+    constructor() {
+        super();
+    }
+
+    generateTexts(req: Request, processedPositions: ProcessedPosition[]) {
+        this.handle_request(req);
         const generatedTexts = processedPositions.flatMap((position, i) => {
             const texts = [];
             for (const [key, info] of Object.entries(position)) {

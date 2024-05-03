@@ -2,7 +2,7 @@ from pydub import AudioSegment
 import os
 
 NEXT_POSITION_FILE_PATH = "backend/src/assets/audio/next_position.mp3"
-END_OF_TRACK_FILE_PATH = "backend/src/assets/audio/end_of_track.mp3"
+END_OF_TRACK_FILE_PATH = "backend/src/assets/audio/finish.mp3"
 
 
 def merge_audio_files_with_delay(directory_path, delay_duration):

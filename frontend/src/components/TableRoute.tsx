@@ -4,8 +4,10 @@ import { BACKEND_ENDPOINT } from "../configs";
 import { Coordinates, HoldEntity, Matrix, MatrixElement, Position } from "../types";
 import RouteSettingTable from "./RouteSettingTable/RouteSettingTable";
 import { Member } from "../utils/utils";
+import { fetchFn } from "../utils/http";
 import debugRouteJson from "../assets/debug_route.json";
 import TableRouteControls from "./TableRouteControls/TableRouteControls";
+import { useParams } from "react-router-dom";
 
 export enum PositionSetterBarState {
     HIDDEN = "HIDDEN",
@@ -56,13 +58,14 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const [selectedMember, setSelectedMember] = useState<Member>();
     const [positions, setPositions] = useState<Position[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const { id } = useParams();
 
     const _emptyMatrix = useMemo(() => {
         const initialMatrix = [];
         for (let i = 0; i < numRows; i++) {
             const row = [];
             for (let j = 0; j < numCols; j++) {
-                row.push(undefined);
+                row.push(null);
             }
             initialMatrix.push(row);
         }
@@ -170,7 +173,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
         const parsedJson: { rowIndex: number; colIndex: number } = JSON.parse(data);
         const rowIndex = parsedJson.rowIndex;
         const colIndex = parsedJson.colIndex;
-        matrix[rowIndex][colIndex] = undefined;
+        matrix[rowIndex][colIndex] = null;
         setMatrix([...matrix]);
     };
 
@@ -181,7 +184,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
         const colIndex = e.currentTarget.cellIndex;
 
         // Update holds matrix
-        matrix[rowIndex][colIndex] = undefined;
+        matrix[rowIndex][colIndex] = null;
         setMatrix([...matrix]);
     };
 
@@ -192,8 +195,9 @@ const TableRoute = forwardRef((props: Props, ref) => {
             matrix,
         });
         setIsGenerating(true);
-        const response = await fetch(`${BACKEND_ENDPOINT}/route`, {
+        const response = await fetchFn(`${BACKEND_ENDPOINT}/route/${id}`, {
             headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
                 "Content-Type": "application/json",
             },
             method: "POST",
@@ -230,7 +234,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
         }
 
         if (currentPositionIndex < positions.length) {
-            // replacing the current position 
+            // replacing the current position
             positions[currentPositionIndex] = currentPosition;
             setCurrentPosition(positions[currentPositionIndex]);
         } else {
@@ -246,11 +250,9 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const handleSetDebugRoute = () => {
         if (!debugRoute) {
             const matrix = debugRouteJson.matrix;
-            // replace all occurences of "null" with "undefined"
-            const newMatrix = matrix.map((row) => row.map((el) => (el === null ? undefined : el)));
             const positions = debugRouteJson.positions;
+            setMatrix(matrix as MatrixElement[][]);
             setPositions(positions as Position[]);
-            setMatrix(newMatrix as MatrixElement[][]);
             setDebugRoute(false);
         }
     };
@@ -374,7 +376,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
     }, [routeHighlight, currentPositionIndex, positions, hasAudioFiles]);
 
     return (
-        <div className="table-container rounded-4xl bg-cyan-800">
+        <div className="table-container rounded-4xl bg-route-setting-table">
             <h3 className="table-h">Route Setting Table</h3>
             <RouteSettingTable
                 previousPosition={previousPosition}

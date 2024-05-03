@@ -11,15 +11,11 @@ body,
 }
 
 .App {
-    display: flex;
-    height: 100%;
-    margin: 0;
-    padding: 0;
+    @apply flex flex-col items-center justify-center h-full p-0 m-0;
 }
 
-.image-list {
-    margin-top: 20px;
-    width: 100%;
+.wrapper {
+    @apply p-16;
 }
 
 .main-container {
@@ -31,33 +27,13 @@ body,
 }
 
 .reset-btn {
-    top: 10px;
-    right: 10px;
-    width: 30px;
-    height: 50px;
-    width: 100px;
-    border-radius: 10px;
-    background-color: #f44336;
-    border: 1px solid #fb2414;
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
+    @apply focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900;
 }
 
 .cancel-btn {
-    top: 10px;
-    right: 10px;
-    width: 30px;
-    height: 50px;
-    width: 100px;
-    border-radius: 10px;
-    background-color: #ffb116fb;
-    border: 1px solid #dba102;
-    color: #000000;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
+    @apply focus:outline-none text-white bg-orange-400 hover:bg-orange-500 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:focus:ring-orange-900;
+}
+
+.link-as-btn {
+    @apply focus:outline-none text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-blue-400 dark:hover:bg-blue-500 dark:focus:ring-blue-900;
 }

@@ -41,7 +41,7 @@ const TableRouteActions: FC<TableRouteActionsProps> = ({
             onClick={openModal}
             draggable={false}
         >
-            <img draggable={false} className="trash-img" src="trash.svg" alt="trash"></img>
+            <img draggable={false} className="trash-img" src="/trash.svg" alt="trash"></img>
         </div>
     </div>
 );
