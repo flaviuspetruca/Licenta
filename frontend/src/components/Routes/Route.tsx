@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { BACKEND_ENDPOINT } from "../../configs";
 import { Member } from "../../utils/utils";
 import { buildHttpHeaders, fetchFn } from "../../utils/http";
@@ -23,7 +23,7 @@ export type RouteQueryData = {
     };
 };
 
-type RouteTotalData = {
+export type RouteTotalData = {
     route: RouteQueryData;
     matrix: Matrix;
     positions: Position[];
@@ -31,6 +31,7 @@ type RouteTotalData = {
         audio: string;
         member: string;
     }[][];
+    admin: boolean;
 };
 
 const Route = () => {
@@ -75,8 +76,25 @@ const Route = () => {
     return (
         <LoadingWrapper isLoading={loading} text={data?.route.name}>
             <section>
-                <div className="mt-10 flex items-center justify-center gap-x-6">
-                    <p> {data?.route.gym.name} </p>
+                <div className="hero bg-base-200">
+                    <div className="hero-content flex-col lg:flex-row">
+                        <img
+                            src="/outputs/route.jpg"
+                            alt={`${data?.route.gym.name} climbing gym`}
+                            className="w-full h-full"
+                        ></img>
+                        <div>
+                            <h1 className="text-5xl font-bold">{data?.route.gym?.location}</h1>
+                        </div>
+                        {data?.admin && (
+                            <Link
+                                to={`/route-creator/${data?.route.gym_id}?route_id=${data.route.id}`}
+                                className="btn btn-primary"
+                            >
+                                Edit route
+                            </Link>
+                        )}
+                    </div>
                 </div>
             </section>
             <section className="w-fit bg-route-setting-table p-6 rounded-2xl">

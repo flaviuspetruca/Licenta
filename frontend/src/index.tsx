@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import App from "./App";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, useLocation, useNavigate } from "react-router-dom";
 import NotFound from "./components/NotFound/NotFound";
 import Login from "./components/Authentication/Login";
 import Register from "./components/Authentication/Register";
@@ -15,8 +14,17 @@ import GymAdministrator from "./components/Gyms/GymAdministrator";
 import Gym from "./components/Gyms/Gym";
 import { ErrorBoundary } from "react-error-boundary";
 import { AlertProvider } from "./components/UI/AlertProvider";
+import MainPanel from "./components/MainPanel";
 
 const NavbarWrapper = () => {
+    const navigate = useNavigate();
+    const path = useLocation().pathname;
+    useEffect(() => {
+        if (path === "/") {
+            navigate("/routes");
+        }
+    });
+
     return (
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
             <AlertProvider>
@@ -31,7 +39,7 @@ const router = createBrowserRouter([
         path: "/",
         element: <NavbarWrapper />,
         children: [
-            { path: "/route-creator/:id", element: <App /> },
+            { path: "/route-creator/:id", element: <MainPanel /> },
             { path: "/gyms", element: <Gyms /> },
             { path: "/routes", element: <Routes /> },
             { path: "/gym-admin", element: <GymAdministrator /> },

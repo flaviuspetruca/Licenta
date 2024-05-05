@@ -9,6 +9,7 @@ export interface RequestContext {
     id: string;
     lgr?: Logger;
     user?: Omit<User, "password">;
+    gym?: { admin: boolean };
 }
 
 export const uuid_mapper = (req: Request, _res: Response, next: NextFunction) => {

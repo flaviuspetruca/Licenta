@@ -6,13 +6,16 @@ import { RouteQueryData } from "../Routes/Route";
 import LoadingWrapper from "../UI/LoadingWrapper";
 import { useAlert, AlertType } from "../UI/AlertProvider";
 
+export type UserGymRole = "ADMIN" | "EDITOR" | "VIEWER";
+
 export type GymQueryData = {
     id: number;
     name: string;
     location: string;
-    users: { username: string }[];
+    users: { id: number; username: string; data: { role: UserGymRole } }[];
     nr_routes?: number;
     routes?: RouteQueryData[]; //TODO: Omit the extra data
+    isAdmin?: boolean;
 };
 
 const Gyms = () => {

@@ -7,6 +7,9 @@ class UserGyms extends Model {
     location: string;
     name: string;
 }
+
+export type UserGymRole = "ADMIN" | "EDITOR" | "VIEWER";
+
 UserGyms.init(
     {
         user_gym_id: {
@@ -22,6 +25,10 @@ UserGyms.init(
             type: DataTypes.INTEGER,
             allowNull: false,
         },
+        role: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
     },
     {
         sequelize,
@@ -30,5 +37,32 @@ UserGyms.init(
         timestamps: false,
     }
 );
+
+export const insertRelation = async ({
+    user_id,
+    gym_id,
+    role,
+}: {
+    user_id: number;
+    gym_id: number;
+    role: UserGymRole;
+}) => {
+    try {
+        await UserGyms.create({ user_id, gym_id, role });
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
+
+export const deleteRelation = async ({ user_id, gym_id }: { user_id: number; gym_id: number }) => {
+    try {
+        const where = { user_id, gym_id };
+        const destroyed = await UserGyms.destroy({ where: where });
+        return Boolean(destroyed);
+    } catch (error) {
+        return false;
+    }
+};
 
 export default UserGyms;

@@ -55,17 +55,17 @@ const insertRoute = async (gym_id: number, user_id: number, dir_id: string, name
 
 const routeInfoParams = () => {
     return {
-        attributes: ["id", "dir_id", "name"],
+        attributes: ["id", "gym_id", "dir_id", "name"],
         include: [
             {
                 model: User,
                 as: "user",
-                attributes: ["username"],
+                attributes: ["id", "username"],
             },
             {
                 model: Gym,
                 as: "gym",
-                attributes: ["id", "name"],
+                attributes: ["name"],
             },
         ],
     };

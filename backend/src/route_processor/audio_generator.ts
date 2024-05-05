@@ -5,8 +5,7 @@ import { Request } from "../utils/http";
 import { Actor } from "../actor";
 
 export class AudioGenerator extends Actor {
-    async generateAudioData(req: Request, generatedTexts: string[], processedPositions: ProcessedPosition[]) {
-        this.handle_request(req);
+    async generateAudioData(generatedTexts: string[], processedPositions: ProcessedPosition[]) {
         const audioFiles = await this.textToSpeech(generatedTexts);
         const dirName = audioFiles[0].split("/")[0];
         return {

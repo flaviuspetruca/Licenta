@@ -9,7 +9,7 @@ export const GymCard = ({ gym }: { gym: GymQueryData }) => {
                 className=" h-72 lg:h-auto lg:w-72 flex-none bg-cover rounded-t-xl lg:rounded-t-none lg:rounded-l-xl text-center overflow-hidden"
                 title={gym.name}
             >
-                <img src="outputs/gym.jpg" alt={`${gym.name} climbing gym`} className="w-full h-full"></img>
+                <img src="/outputs/gym.jpg" alt={`${gym.name} climbing gym`} className="w-full h-full"></img>
             </div>
             <div className="rounded-b-xl lg:rounded-b-none lg:rounded-r-xl border-r border-b border-l border-gray-400 lg:border-l-0 lg:border-t lg:border-gray-400 bg-white p-6 flex flex-col justify-between leading-normal">
                 <header className="mb-8">

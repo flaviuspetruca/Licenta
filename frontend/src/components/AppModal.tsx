@@ -2,9 +2,12 @@ import { forwardRef, useImperativeHandle, useRef } from "react";
 
 type Props = {
     resetPanel: (() => void) | undefined;
+    title: string;
+    confirmButtonText: string;
+    cancelButtonText: string;
 };
 
-const AppModal = forwardRef(({ resetPanel }: Props, ref) => {
+const AppModal = forwardRef(({ resetPanel, title, confirmButtonText, cancelButtonText }: Props, ref) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
 
     const handleReset = () => {
@@ -20,17 +23,17 @@ const AppModal = forwardRef(({ resetPanel }: Props, ref) => {
     return (
         <dialog ref={dialogRef} className="modal">
             <div className="flex justify-end gap-2 modal-box">
-                <h3 className="text-2xl font-bold mb-10">Esti sigur ca vrei sa resetezi panoul?</h3>
+                <h3 className="text-2xl font-bold">{title}</h3>
                 <div className="modal-action">
                     <form method="dialog">
                         <button className="btn reset-btn" onClick={handleReset}>
-                            Reset
+                            {confirmButtonText}
                         </button>
                     </form>
                 </div>
                 <div className="modal-action">
                     <form method="dialog">
-                        <button className="btn cancel-btn">Cancel</button>
+                        <button className="btn cancel-btn">{cancelButtonText}</button>
                     </form>
                 </div>
             </div>

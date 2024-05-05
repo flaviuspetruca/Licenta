@@ -17,10 +17,6 @@ Gym.init(
             autoIncrement: true,
             primaryKey: true,
         },
-        admin_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
         location: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -47,112 +43,70 @@ const insertGym = async () => {
         return null;
     }
 };
-const baseQueryOptions = () => {
-    return {
+
+// TODO: nested data removal
+const findGym = async ({ id, admin_id }: { id?: number; admin_id?: number }) => {
+    const where = admin_id ? { "$users.data.role$": "ADMIN", "$users.id$": admin_id } : {};
+    const gym = await Gym.findOne({
+        where: { id, ...where },
         attributes: ["id", "name", "location", [sequelize.fn("COUNT", sequelize.col("routes.id")), "nr_routes"]],
         include: [
             {
                 model: User,
                 as: "users",
-                attributes: ["username"],
-                through: { attributes: [] },
+                attributes: ["id", "username"],
+                through: { attributes: ["role"], as: "data" },
+            },
+            {
+                model: Route,
+                as: "routes",
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ["username"],
+                    },
+                    {
+                        model: Gym,
+                        as: "gym",
+                        attributes: ["name"],
+                    },
+                ],
             },
         ],
-        group: ["Gym.id", "users.id"],
-    };
+        group: ["Gym.id", "users.id", "routes.id", "routes->user.id", "users->data.user_gym_id", "routes->gym.id"],
+    });
+    return gym;
 };
 
-const extraIncludeOptions = () => {
-    return {
-        model: Route,
-        as: "routes",
+const findGyms = async (user_id?: number) => {
+    const where = user_id ? { "$users.data.role$": "ADMIN", "$users.id$": user_id } : {};
+    const gyms = await Gym.findAll({
+        attributes: ["id", "name", "location", [sequelize.fn("COUNT", sequelize.col("routes.id")), "nr_routes"]],
         include: [
             {
                 model: User,
-                as: "user",
-                attributes: ["username"],
+                as: "users",
+                attributes: ["id", "username"],
+                through: { attributes: ["role"], as: "data" },
             },
             {
-                model: Gym,
-                as: "gym",
-                attributes: ["name"],
+                model: Route,
+                as: "routes",
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+                        attributes: ["username"],
+                    },
+                ],
             },
         ],
-    };
-};
-
-const findGymss = async (options?: { user_id?: number; gym_id?: number }) => {
-    try {
-        let queryOptions: any = { ...baseQueryOptions() };
-
-        if (options?.user_id !== undefined) {
-            queryOptions = {
-                ...queryOptions,
-                where: { admin_id: options.user_id },
-                include: [
-                    ...queryOptions.include,
-                    {
-                        model: Route,
-                        as: "routes",
-                        attributes: [],
-                    },
-                ],
-            };
-        } else if (options?.gym_id !== undefined) {
-            queryOptions = {
-                ...queryOptions,
-                where: { id: options.gym_id },
-                include: [...queryOptions.include, extraIncludeOptions()],
-                group: [...queryOptions.group, "routes.id", "routes->user.id", "routes->gym.id"],
-            };
-        } else {
-            queryOptions = {
-                ...queryOptions,
-                include: [...queryOptions.include, extraIncludeOptions()],
-                group: [...queryOptions.group, "routes.id", "routes->user.id", "routes->gym.id"],
-            };
-        }
-
-        return options?.gym_id !== undefined ? await Gym.findOne(queryOptions) : await Gym.findAll(queryOptions);
-    } catch (error) {
-        lgr.error("Error finding gyms", error);
-        return null;
-    }
-};
-
-type WhereOptions = { id?: number; admin_id?: number };
-const findGyms = async (options?: WhereOptions) => {
-    try {
-        let queryOptions: any = { ...baseQueryOptions() };
-
-        if (options?.admin_id !== undefined || options?.id !== undefined) {
-            queryOptions = {
-                ...queryOptions,
-                where: options,
-                include: [...queryOptions.include, extraIncludeOptions()],
-                group: [...queryOptions.group, "routes.id", "routes->user.id", "routes->gym.id"],
-            };
-        } else {
-            queryOptions = {
-                ...queryOptions,
-                include: [
-                    ...queryOptions.include,
-                    {
-                        model: Route,
-                        as: "routes",
-                        attributes: [],
-                    },
-                ],
-                group: [...queryOptions.group, "routes.id"],
-            };
-        }
-
-        return options?.id !== undefined ? await Gym.findOne(queryOptions) : await Gym.findAll(queryOptions);
-    } catch (error) {
-        lgr.error("Error finding gyms", error);
-        return null;
-    }
+        where: where,
+        group: ["Gym.id", "users.id", "routes.id", "routes->user.id", "users->data.user_gym_id"],
+    });
+    return gyms;
 };
 
 export default Gym;
-export { insertGym, findGyms };
+export { insertGym, findGyms, findGym };

@@ -1,8 +1,11 @@
-const buildHttpHeaders = () => {
+const buildHttpHeaders = (method?: string, body?: string, content_type?: string) => {
     return {
+        method: method ? method : "GET",
         headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": content_type ? content_type : "application/json",
         },
+        body: body ? body : undefined,
     };
 };
 const fetchFn = async (input: RequestInfo | URL, init?: RequestInit | undefined) => {

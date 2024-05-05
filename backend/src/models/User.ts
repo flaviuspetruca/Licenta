@@ -42,8 +42,8 @@ User.init(
 
 const insertUser = async (username: string, password: string, role: UserRole = "user") => {
     try {
-        await User.create({ username, password, role });
-        return { username, role };
+        const user = await User.create({ username, password, role });
+        return user;
     } catch (error) {
         lgr.ierror("Error inserting user");
         return null;

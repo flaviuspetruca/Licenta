@@ -7,8 +7,7 @@ export class TextGenerator extends Actor {
         super();
     }
 
-    generateTexts(req: Request, processedPositions: ProcessedPosition[]) {
-        this.handle_request(req);
+    generateTexts(processedPositions: ProcessedPosition[]) {
         const generatedTexts = processedPositions.flatMap((position, i) => {
             const texts = [];
             for (const [key, info] of Object.entries(position)) {

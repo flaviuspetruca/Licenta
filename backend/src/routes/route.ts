@@ -8,6 +8,7 @@ import { findRoute, findRoutes } from "../models/Route";
 import { findAllHolds } from "../models/Hold";
 import { __dirname } from "..";
 import { AudioGenerator } from "../route_processor/audio_generator";
+import { verifyGymAdminMiddleWear, verifyGymAdminNonBlock } from "./auth";
 
 const router = express.Router();
 
@@ -39,6 +40,8 @@ router.get("/holds-info", async (req: Request, res: Response) => {
 router.get("/route/:id", async (req: Request, res: Response) => {
     const { id } = req.params;
     const route = await findRoute({ id: parseInt(id) });
+    req.params.gym_id = route.gym_id.toString();
+    await verifyGymAdminNonBlock(req, res);
     if (!route) {
         res.status(STATUS_CODES.NOT_FOUND).send("Failed to fetch route");
         return;
@@ -58,7 +61,13 @@ router.get("/route/:id", async (req: Request, res: Response) => {
     const positions = JSON.parse(positionJson);
     const matrix = JSON.parse(matrixJson);
     const audioFiles = Object.fromEntries(AudioGenerator.buildAudioData(audios, positions));
-    res.status(STATUS_CODES.OK).json({ route: route.dataValues, matrix, audioFiles, positions });
+    res.status(STATUS_CODES.OK).json({
+        route: route.dataValues,
+        matrix,
+        audioFiles,
+        positions,
+        admin: req.context.gym?.admin,
+    });
 });
 
 router.get("/routes", async (req: Request, res: Response) => {
@@ -70,11 +79,18 @@ router.get("/routes", async (req: Request, res: Response) => {
     res.status(STATUS_CODES.OK).json(routes);
 });
 
-router.post("/route/:id", validateRoute, async (req: Request & { route: any }, res: Response) => {
-    const { audiosPath, audioFiles } = await processor.processRoute(req, req.route);
-    req.context.lgr.debug("Received route");
-    req.context.lgr.debug(`Parsing...`);
-    res.status(STATUS_CODES.OK).json(Object.fromEntries(audioFiles));
-});
+router.post(
+    "/route/:gym_id",
+    verifyGymAdminMiddleWear,
+    validateRoute,
+    async (req: Request & { route: any }, res: Response) => {
+        const gym_id = Number(req.params.gym_id);
+        const username = req.context.user.username;
+        const { audiosPath, audioFiles } = await processor.processRoute(gym_id, username, req.route);
+        req.context.lgr.debug("Received route");
+        req.context.lgr.debug(`Parsing...`);
+        res.status(STATUS_CODES.OK).json(Object.fromEntries(audioFiles));
+    }
+);
 
 export default router;

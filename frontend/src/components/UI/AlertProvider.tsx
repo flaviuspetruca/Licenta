@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useState } from "react";
 import Alert from "./Alert";
 
 type AlertContextType = {
@@ -26,13 +26,13 @@ type Props = {
 export const AlertProvider = ({ children }: Props) => {
     const [alert, setAlert] = useState<AlertPayload | null>(null);
 
-    const showAlert = (payload: AlertPayload) => {
+    const showAlert = useCallback((payload: AlertPayload) => {
         setAlert(payload);
-    };
+    }, []);
 
-    const hideAlert = () => {
+    const hideAlert = useCallback(() => {
         setAlert(null);
-    };
+    }, []);
 
     return (
         <AlertContext.Provider value={{ showAlert, hideAlert, alert }}>

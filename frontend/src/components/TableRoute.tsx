@@ -358,6 +358,8 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
     useImperativeHandle(ref, () => ({
         resetPanel,
+        setMatrix,
+        setPositions,
     }));
 
     useEffect(() => {

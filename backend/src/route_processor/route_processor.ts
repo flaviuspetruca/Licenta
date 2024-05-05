@@ -31,21 +31,22 @@ class RouteProcessor extends Actor {
         this.textGenerator = new TextGenerator();
     }
 
-    async processRoute(req: Request, { routeName, matrix, positions }: RouteProcessorProps) {
-        this.handle_request(req);
+    async processRoute(gym_id: number, username: string, { routeName, matrix, positions }: RouteProcessorProps) {
+        const db_user = await findUser(username);
+        if (!db_user) {
+            return null;
+        }
         const processedPositions = this.processPositions(positions);
-        const generatedTexts = this.textGenerator.generateTexts(req, processedPositions);
+        const generatedTexts = this.textGenerator.generateTexts(processedPositions);
         const { audiosPath, audioFiles } = await this.audioGenerator.generateAudioData(
-            req,
             generatedTexts,
             processedPositions
         );
-        this._writeRouteInfoToFiles(`${__dirname}/${AUDIO_PATH}/${audiosPath}`, routeName, matrix, positions);
-        const db_user = await findUser(req.context.user.username);
-        const route = await insertRoute(Number(req.params.id), db_user.id, audiosPath, routeName || null);
+        const route = await insertRoute(gym_id, db_user.id, audiosPath, routeName || null);
         if (!route) {
-            // throw error
+            return null;
         }
+        this._writeRouteInfoToFiles(`${__dirname}/${AUDIO_PATH}/${audiosPath}`, routeName, matrix, positions);
         return { audiosPath, audioFiles };
     }
 

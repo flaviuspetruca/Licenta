@@ -21,7 +21,7 @@ const TableRouteActions: FC<TableRouteActionsProps> = ({
     generationDisabled,
 }) => (
     <div className="flex flex-wrap justify-end gap-2">
-        <button className={`submit`} onClick={handleRouteSubmit} disabled={generationDisabled || isGenerating}>
+        <button className={`btn submit`} onClick={handleRouteSubmit} disabled={generationDisabled || isGenerating}>
             {isGenerating ? (
                 <div className="flex content-center items-center flex-row gap-2">
                     <Spinner variant="text-white" />
