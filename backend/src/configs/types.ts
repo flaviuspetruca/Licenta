@@ -69,10 +69,11 @@ export enum HeightLevel {
     LEGS = 30,
     THIGHS_KNEES = 60,
     HIPS = 90,
-    UPPER_BODY = 120,
-    HEAD = 150,
-    OVERHEAD = 180,
-    OUT_OF_REACH = 210,
+    CHEST = 120,
+    SHOULDER_NECK = 150,
+    HEAD = 180,
+    OVERHEAD = 210,
+    OUT_OF_REACH = 240,
 }
 
 export enum Direction {

@@ -3,12 +3,14 @@ import { NextFunction, Response } from "express";
 import User from "../models/User";
 import { Logger } from "./logger";
 import { Request as ExpressRequest } from "express";
+import { Matrix, Position } from "../configs/types";
 export type Request = ExpressRequest & { context: RequestContext };
 
 export interface RequestContext {
     id: string;
     lgr?: Logger;
     user?: Omit<User, "password">;
+    route?: { matrix: Matrix; positions: Position[] };
     gym?: { admin: boolean };
 }
 
@@ -25,7 +27,7 @@ export const logger_middleware = (req: Request, res: Response, next: NextFunctio
     next();
 };
 
-export const WHITELISTED_ROUTES = ["register", "login", "audio", "holds-images"];
+export const WHITELISTED_ROUTES = ["register", "login", "audio", "holds-images", "tmp", "azure"];
 
 export const STATUS_CODES = {
     OK: 200,

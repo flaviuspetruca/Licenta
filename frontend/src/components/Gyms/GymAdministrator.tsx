@@ -48,7 +48,7 @@ const GymAdministrator = () => {
 
     return (
         <LoadingWrapper isLoading={loading} text={"Admin"}>
-            {renderContent}
+            <div className="gym-list">{renderContent}</div>
         </LoadingWrapper>
     );
 };

@@ -10,13 +10,21 @@ import { buildHttpHeaders, fetchFn } from "../utils/http";
 import AppModal from "./AppModal";
 import { AlertType, useAlert } from "./UI/AlertProvider";
 import { useLocation, useParams } from "react-router-dom";
-import Loading from "./Loading";
 import { RouteTotalData } from "./Routes/Route";
+import LoadingWrapper from "./UI/LoadingWrapper";
 
 type TableRouteRef = {
     resetPanel: () => void;
     setMatrix: (matrix: Matrix) => void;
     setPositions: (positions: Position[]) => void;
+    setRouteName: (name: string) => void;
+    setDifficulty: (difficulty: string) => void;
+};
+
+export type AudioData = {
+    path: string;
+    data: { audioFileName: string; member: string }[][];
+    blobs: File[];
 };
 
 const MainPanel = () => {
@@ -25,9 +33,7 @@ const MainPanel = () => {
     const { showAlert } = useAlert();
 
     const [holds, setHolds] = useState<Hold[]>([]);
-    const [audioFiles, setAudioFiles] = useState<{ audio: string; member: string }[][]>([]);
-    const [startRouting, setStartRouting] = useState<boolean>(false);
-    const [routeName, setRouteName] = useState<string>("");
+    const [audioData, setAudioData] = useState<AudioData | undefined>();
     const [routeHighlight, setRouteHighlight] = useState<{ positionIndex: number; member: Member } | undefined>(
         undefined
     );
@@ -35,6 +41,7 @@ const MainPanel = () => {
     const { id } = useParams();
     const location = useLocation();
     const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         async function verifyAdmin() {
             setLoading(true);
@@ -54,19 +61,22 @@ const MainPanel = () => {
                 return;
             }
             setLoading(false);
-            const data: RouteTotalData = await response.json();
-            tableRouteRef.current?.setMatrix(data.matrix);
-            tableRouteRef.current?.setPositions(data.positions);
-            setAudioFiles(data.audioFiles);
+            const audioData: RouteTotalData = await response.json();
+            tableRouteRef.current?.setMatrix(audioData.matrix);
+            tableRouteRef.current?.setPositions(audioData.positions);
+            tableRouteRef.current?.setRouteName(audioData.route.name);
+            tableRouteRef.current?.setDifficulty(audioData.route.difficulty);
+            if (!audioData.data) {
+                showAlert({ title: "Error", description: "Failed to generate", type: AlertType.ERROR });
+                return;
+            }
+            setAudioData({ ...audioData });
+            console.log(audioData);
         }
+
         verifyAdmin();
         getRoute();
-    }, [id, location]);
-
-    const handleStartRouting = () => {
-        setStartRouting(!startRouting);
-        setRouteHighlight(undefined);
-    };
+    }, [id, location, showAlert]);
 
     useEffect(() => {
         async function getHolds() {
@@ -82,7 +92,7 @@ const MainPanel = () => {
     }, [showAlert]);
 
     return (
-        <Loading isLoading={loading}>
+        <LoadingWrapper isLoading={loading} text="Route Creator">
             <AppModal
                 title="Are you sure you want to reset the panel?"
                 confirmButtonText="Yes"
@@ -90,44 +100,36 @@ const MainPanel = () => {
                 ref={appModalRef}
                 resetPanel={tableRouteRef.current?.resetPanel}
             />
-            <div className="main-container">
-                <div
-                    className={`table-holds-container w1/3 ${audioFiles.length ? "justify-between" : "justify-center"}`}
-                >
-                    <TableHolds
-                        numRows={8}
-                        numCols={6}
-                        holds={holds}
-                        startRouting={startRouting}
-                        setStartRouting={handleStartRouting}
-                        routeName={routeName}
-                        setRouteName={setRouteName}
-                        transition={audioFiles.length > 0}
+            <div className="flex flex-row overflow-x-auto w-full">
+                <div className="main-container">
+                    <div
+                        className={`table-holds-container ${!!audioData?.data.length ? "justify-between" : "justify-center"}`}
+                    >
+                        <TableHolds numRows={8} numCols={6} holds={holds} transition={!!audioData?.data.length} />
+                        {audioData?.data.length ? (
+                            <Player
+                                audioData={audioData}
+                                setRouteHighlight={setRouteHighlight}
+                                transition={Object.keys(audioData?.data || []).length > 0}
+                            ></Player>
+                        ) : (
+                            <></>
+                        )}
+                    </div>
+                    <TableRoute
+                        ref={tableRouteRef}
+                        openModal={appModalRef.current?.openModal}
+                        numRows={10}
+                        numCols={15}
+                        audioData={audioData}
+                        setAudioData={setAudioData}
+                        hasAudioFiles={Object.keys(audioData?.data || []).length > 0}
+                        routeHighlight={routeHighlight}
+                        setRouteHighlight={setRouteHighlight}
                     />
-                    {audioFiles.length === 0 ? (
-                        <></>
-                    ) : (
-                        <Player
-                            audioFiles={audioFiles}
-                            setRouteHighlight={setRouteHighlight}
-                            transition={Object.keys(audioFiles).length > 0}
-                        ></Player>
-                    )}
                 </div>
-                <TableRoute
-                    ref={tableRouteRef}
-                    openModal={appModalRef.current?.openModal}
-                    numRows={10}
-                    numCols={15}
-                    startRouting={startRouting}
-                    routeName={routeName}
-                    setAudioFiles={setAudioFiles}
-                    hasAudioFiles={Object.keys(audioFiles).length > 0}
-                    routeHighlight={routeHighlight}
-                    setRouteHighlight={setRouteHighlight}
-                />
             </div>
-        </Loading>
+        </LoadingWrapper>
     );
 };
 

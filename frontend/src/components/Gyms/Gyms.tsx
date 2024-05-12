@@ -51,7 +51,7 @@ const Gyms = () => {
 
     return (
         <LoadingWrapper isLoading={loading} text={"Gyms"}>
-            {renderContent}
+            <div className="gym-list">{renderContent}</div>
         </LoadingWrapper>
     );
 };

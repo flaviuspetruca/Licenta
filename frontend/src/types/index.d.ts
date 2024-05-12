@@ -41,9 +41,15 @@ export type Position = {
     "right-foot": Coordinates;
 };
 
+export type UserTypeDB = {
+    id: number;
+    username: string;
+    email: string;
+    password: string;
+};
+
 export type GymTypeDB = {
     id: number;
-    admin_id: number;
     location: string;
     name: string;
 };

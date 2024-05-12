@@ -4,11 +4,13 @@ import { BACKEND_ENDPOINT } from "../configs";
 import { Coordinates, HoldEntity, Matrix, MatrixElement, Position } from "../types";
 import RouteSettingTable from "./RouteSettingTable/RouteSettingTable";
 import { Member } from "../utils/utils";
-import { fetchFn } from "../utils/http";
+import { buildHttpHeaders, fetchFn } from "../utils/http";
 import debugRouteJson from "../assets/debug_route.json";
 import TableRouteControls from "./TableRouteControls/TableRouteControls";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useAlert, AlertType } from "./UI/AlertProvider";
+import { AudioData } from "./MainPanel";
+import { difficultyLevels } from "./TableRouteActions/TableRouteActions";
 
 export enum PositionSetterBarState {
     HIDDEN = "HIDDEN",
@@ -20,11 +22,10 @@ export enum PositionSetterBarState {
 export enum PositionSetterBarAction {
     SET_POSITIONS = "setPositions",
     POSITION_SAVE = "positionSave",
-    SAVE = "save",
     EDIT = "edit",
     PREVIOUS = "previous",
     NEXT = "next",
-    CANCEL = "cancel",
+    CLOSE = "close",
     SET_SELECTED_MEMBER = "setSelectedMember",
 }
 
@@ -32,9 +33,8 @@ type Props = {
     openModal: (() => void) | undefined;
     numRows: number;
     numCols: number;
-    startRouting: boolean;
-    routeName: string;
-    setAudioFiles: React.Dispatch<React.SetStateAction<{ audio: string; member: string }[][]>>;
+    audioData: AudioData | undefined;
+    setAudioData: React.Dispatch<React.SetStateAction<AudioData | undefined>>;
     hasAudioFiles: boolean;
     routeHighlight: { positionIndex: number; member: Member } | undefined;
     setRouteHighlight: React.Dispatch<React.SetStateAction<{ positionIndex: number; member: Member } | undefined>>;
@@ -45,21 +45,24 @@ const TableRoute = forwardRef((props: Props, ref) => {
         openModal,
         numRows,
         numCols,
-        startRouting,
-        routeName,
-        setAudioFiles,
+        audioData,
+        setAudioData,
         hasAudioFiles,
         routeHighlight,
         setRouteHighlight,
     }: Props = props;
     const { id } = useParams();
     const { showAlert } = useAlert();
+    const params = useSearchParams();
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
     const [isSettingPositions, setIsSettingPositions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedMember, setSelectedMember] = useState<Member>();
     const [positions, setPositions] = useState<Position[]>([]);
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [processing, setProccessing] = useState(false);
+    const [generated, setGenerated] = useState(false);
+    const [routeName, setRouteName] = useState<string>("");
+    const [difficulty, setDifficulty] = useState<string>(difficultyLevels[0]);
 
     const _emptyMatrix = useMemo(() => {
         const initialMatrix = [];
@@ -136,13 +139,13 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
         // If a member is selected, find if there is a member in the current position at the given coordinates
         const memberAtDesiredCell = _getMemberFromCurrentPositon({ x: row, y: col });
-
         // If there is a member in the current position at the given coordinates, remove it first
         if (memberAtDesiredCell) {
             updateCurrentPosition(memberAtDesiredCell, _notSetCoordinates);
         }
 
-        // Set the selected member to the clicked position
+        // Set the selected member to the clicked position only if there is a hold in the clicked position
+        if (matrix[row][col] === null) return;
         updateCurrentPosition(selectedMember, { x: row, y: col });
 
         // Reset the selected member
@@ -154,11 +157,13 @@ const TableRoute = forwardRef((props: Props, ref) => {
     };
 
     const handleOnDrop = (e: React.DragEvent<HTMLTableCellElement>) => {
+        setIsSettingPositions(true);
         const data = e.dataTransfer.getData("application/to-route-setting-panel");
         if (data === "") return;
         const parsedData: HoldEntity = JSON.parse(data);
         if (!parsedData) e.preventDefault();
 
+        console.log(e);
         const row = (e.currentTarget.parentElement as HTMLTableRowElement)?.rowIndex;
         const col = e.currentTarget.cellIndex;
 
@@ -189,41 +194,63 @@ const TableRoute = forwardRef((props: Props, ref) => {
         setMatrix([...matrix]);
     };
 
-    const handleRouteSubmit = async () => {
+    const handleActionSubmit = () => {
+        generated ? handleRouteSave() : handleRouteSubmit();
+    };
+
+    const handleRouteSave = async () => {
         const body = JSON.stringify({
+            route_id: Number(params[0].get("route_id")),
             routeName,
-            positions,
-            matrix,
+            dir_id: audioData?.path,
+            difficulty,
         });
-        setIsGenerating(true);
-        const response = await fetchFn(`${BACKEND_ENDPOINT}/route/${id}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                "Content-Type": "application/json",
-            },
-            method: "POST",
-            body,
-        });
+        const response = await fetchFn(`${BACKEND_ENDPOINT}/save-route/${id}`, buildHttpHeaders("POST", body));
         if (response.ok) {
-            setIsGenerating(false);
-            const data = await response.json();
-            setAudioFiles(data);
-            setIsSettingPositions(false);
-            setIsEditing(false);
+            showAlert({ title: "Success", description: "Route saved successfully", type: AlertType.SUCCESS });
         } else {
-            showAlert({ title: "Error", description: "Failed to generate route", type: AlertType.ERROR });
-            setIsGenerating(false);
-            setAudioFiles([]);
+            showAlert({ title: "Error", description: "Failed to save route", type: AlertType.ERROR });
         }
     };
 
-    const handleSetPositions = () => {
-        if (startRouting) {
-            setIsSettingPositions(true);
+    const handleRouteSubmit = async () => {
+        const body = JSON.stringify({
+            positions,
+            matrix,
+        });
+        setProccessing(true);
+        const response = await fetchFn(`${BACKEND_ENDPOINT}/route/${id}`, buildHttpHeaders("POST", body));
+        if (response.ok) {
+            setProccessing(false);
+            const data = await response.formData();
+            const jsonData: AudioData = JSON.parse(data.get("json_data") as string);
+
+            if (!jsonData) {
+                showAlert({ title: "Error", description: "Failed to generate route. No data", type: AlertType.ERROR });
+                return;
+            }
+
+            const blobs = data.getAll("audio_blob") as File[];
+            jsonData.blobs = blobs;
+            setAudioData({ ...jsonData });
+            setIsEditing(false);
+            setGenerated(true);
         } else {
-            setIsSettingPositions(false);
+            showAlert({ title: "Error", description: "Failed to generate route", type: AlertType.ERROR });
+            setProccessing(false);
+            setAudioData(undefined);
         }
     };
+
+    const handleRouteNameChange = (routeName: string) => {
+        setRouteName(routeName);
+    };
+
+    const handleSetPositions = () => {
+        setIsSettingPositions(true);
+    };
+
+    const handleClose = () => {};
 
     const handleSavePositions = () => {
         if (usedMembers.length !== 4) {
@@ -259,12 +286,12 @@ const TableRoute = forwardRef((props: Props, ref) => {
         setSelectedMember(member);
     };
 
-    const handleEdit = () => {
+    const handleEdit = useCallback(() => {
         setIsSettingPositions(true);
-        setAudioFiles([]);
+        setAudioData(undefined);
         setRouteHighlight(undefined);
         setIsEditing(!isEditing);
-    };
+    }, [setAudioData, setRouteHighlight]);
 
     const handleNext = () => {
         setSelectedMember(undefined);
@@ -285,9 +312,18 @@ const TableRoute = forwardRef((props: Props, ref) => {
         }
     };
 
+    const allowSetPositions = (positions: Position[], currentPositionIndex: number) => {
+        if (currentPositionIndex < positions.length) return true;
+        return false;
+    };
+
+    const handleDifficultyChange = (difficulty: string) => {
+        setDifficulty(difficulty);
+    };
+
     const handlePositionsSetterBarAction = (action: PositionSetterBarAction, args: any) => {
         switch (action) {
-            case PositionSetterBarAction.CANCEL:
+            case PositionSetterBarAction.CLOSE:
                 resetSettingPositions();
                 break;
             case PositionSetterBarAction.SET_POSITIONS:
@@ -315,9 +351,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
     const setterBarState = useMemo(() => {
         let state = PositionSetterBarState.HIDDEN;
-        if (startRouting) {
-            state = PositionSetterBarState.CLOSED;
-        }
 
         if (isSettingPositions || isEditing) {
             state = PositionSetterBarState.OPEN;
@@ -327,7 +360,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
             state = PositionSetterBarState.ALLOW_EDIT;
         }
         return state;
-    }, [startRouting, isSettingPositions, isEditing, hasAudioFiles]);
+    }, [isSettingPositions, isEditing, hasAudioFiles]);
 
     const previousPosition = useMemo(() => {
         if (currentPositionIndex === 0) {
@@ -343,37 +376,43 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
     const resetSettingPositions = useCallback(() => {
         setRouteHighlight(undefined);
-        setAudioFiles([]);
-        setIsEditing(false);
+        setAudioData(undefined);
         setPositions([]);
         resetCurrentPosition();
         setIsSettingPositions(false);
         setSelectedMember(undefined);
-    }, [resetCurrentPosition, setAudioFiles, setRouteHighlight]);
+        setGenerated(false);
+    }, [resetCurrentPosition, setAudioData, setRouteHighlight]);
 
     const resetPanel = useCallback(() => {
         resetSettingPositions();
-        setMatrix(_emptyMatrix);
+        setMatrix([..._emptyMatrix]);
     }, [_emptyMatrix, resetSettingPositions]);
 
     useImperativeHandle(ref, () => ({
         resetPanel,
         setMatrix,
         setPositions,
+        setRouteName,
+        setDifficulty,
     }));
 
     useEffect(() => {
-        if (startRouting === false) {
-            resetPanel();
-        }
-    }, [startRouting, resetPanel]);
-
-    useEffect(() => {
-        if (routeHighlight && hasAudioFiles) {
+        if (routeHighlight && hasAudioFiles && allowSetPositions(positions, routeHighlight.positionIndex)) {
             setCurrentPosition(positions[routeHighlight.positionIndex]);
             setCurrentPositionIndex(routeHighlight.positionIndex);
         }
     }, [routeHighlight, currentPositionIndex, positions, hasAudioFiles]);
+
+    useEffect(() => {
+        setIsEditing(false);
+    }, [generated]);
+
+    useEffect(() => {
+        if (params[0].get("route_id")) {
+            //handleEdit();
+        }
+    }, [params, handleEdit]);
 
     return (
         <div className="table-container rounded-4xl bg-route-setting-table">
@@ -394,14 +433,18 @@ const TableRoute = forwardRef((props: Props, ref) => {
                 usedMembers={usedMembers}
                 currentPositionIndex={currentPositionIndex}
                 hasAudioFiles={hasAudioFiles}
-                isGenerating={isGenerating}
+                processing={processing}
+                difficulty={difficulty}
+                routeName={routeName}
+                openModal={openModal}
+                generated={generated}
                 handlePositionsSetterBarAction={handlePositionsSetterBarAction}
-                handleRouteSubmit={handleRouteSubmit}
+                handleRouteSubmit={handleActionSubmit}
                 handleSetDebugRoute={handleSetDebugRoute}
                 handleRemoveDrop={handleRemoveDrop}
                 handleDragOver={handleDragOver}
-                openModal={openModal}
-                generationDisabled={positions.length === 0}
+                handleRouteNameChange={handleRouteNameChange}
+                handleDifficultyChange={handleDifficultyChange}
             />
         </div>
     );

@@ -1,5 +1,4 @@
 import { Actor } from "../actor";
-import { Request } from "../utils/http";
 import { HeightLevel, Member, MemberMoveInfo, ProcessedPosition } from "../configs/types";
 
 export class TextGenerator extends Actor {
@@ -43,8 +42,10 @@ export class TextGenerator extends Actor {
                 return "thighs and knees";
             case HeightLevel.HIPS:
                 return "hips";
-            case HeightLevel.UPPER_BODY:
+            case HeightLevel.CHEST:
                 return "upper body";
+            case HeightLevel.SHOULDER_NECK:
+                return "shoulder and neck";
             case HeightLevel.HEAD:
                 return "head";
             case HeightLevel.OVERHEAD:

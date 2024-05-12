@@ -1,5 +1,5 @@
 import sequelize from "../db/database";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Op } from "sequelize";
 import lgr from "../utils/logger";
 import Gym from "./Gym";
 import User from "./User";
@@ -18,6 +18,10 @@ Route.init(
             autoIncrement: true,
             primaryKey: true,
         },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
         user_id: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -30,9 +34,9 @@ Route.init(
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        name: {
+        difficulty: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true,
         },
     },
     {
@@ -43,10 +47,26 @@ Route.init(
     }
 );
 
-const insertRoute = async (gym_id: number, user_id: number, dir_id: string, name: string) => {
+const insertRoute = async (
+    name: string,
+    gym_id: number,
+    user_id: number,
+    dir_id: string,
+    difficulty: string,
+    route_id?: number
+) => {
     try {
-        await Route.create({ gym_id, user_id, dir_id, name });
-        return { gym_id, user_id, dir_id, name };
+        const route = await Route.findOrCreate({
+            where: {
+                [Op.or]: [{ id: route_id }, { dir_id }],
+            },
+            defaults: { name, gym_id, user_id, dir_id, difficulty },
+        });
+        if (!route[1]) {
+            return route[0].update({ id: route[0].id, name, gym_id, user_id, dir_id, difficulty });
+        }
+
+        return route[0];
     } catch (error) {
         lgr.ierror("Error inserting route", error);
         return null;
@@ -55,7 +75,7 @@ const insertRoute = async (gym_id: number, user_id: number, dir_id: string, name
 
 const routeInfoParams = () => {
     return {
-        attributes: ["id", "gym_id", "dir_id", "name"],
+        attributes: ["id", "name", "gym_id", "dir_id", "difficulty"],
         include: [
             {
                 model: User,

@@ -1,20 +1,12 @@
-import util from "util";
-import fs from "fs";
 import { __dirname } from "../index";
-import { AUDIO_PATH, PANEL_HEIGHT } from "../configs/globals";
-import { Request } from "../utils/http";
+import { PANEL_HEIGHT } from "../configs/globals";
 import { Coordinates, Matrix, Member, MemberMoveInfo, Position, ProcessedPosition } from "../configs/types";
 import { AudioGenerator } from "./audio_generator";
 import RouteComputer from "./compute";
 import { TextGenerator } from "./text_generator";
-import { insertRoute } from "../models/Route";
-import { findUser } from "../models/User";
 import { Actor } from "../actor";
 
-const writeFileAsync = util.promisify(fs.writeFile);
-
 type RouteProcessorProps = {
-    routeName: string;
     matrix: Matrix;
     positions: Position[];
 };
@@ -31,23 +23,11 @@ class RouteProcessor extends Actor {
         this.textGenerator = new TextGenerator();
     }
 
-    async processRoute(gym_id: number, username: string, { routeName, matrix, positions }: RouteProcessorProps) {
-        const db_user = await findUser(username);
-        if (!db_user) {
-            return null;
-        }
+    async processRoute({ matrix, positions }: RouteProcessorProps) {
         const processedPositions = this.processPositions(positions);
         const generatedTexts = this.textGenerator.generateTexts(processedPositions);
-        const { audiosPath, audioFiles } = await this.audioGenerator.generateAudioData(
-            generatedTexts,
-            processedPositions
-        );
-        const route = await insertRoute(gym_id, db_user.id, audiosPath, routeName || null);
-        if (!route) {
-            return null;
-        }
-        this._writeRouteInfoToFiles(`${__dirname}/${AUDIO_PATH}/${audiosPath}`, routeName, matrix, positions);
-        return { audiosPath, audioFiles };
+        const audioFilesZip = await this.audioGenerator.generateAudioData(generatedTexts);
+        return { audioFilesZip, processedPositions };
     }
 
     /**
@@ -90,17 +70,6 @@ class RouteProcessor extends Actor {
             }
         }
         return lowestCoordinate;
-    }
-
-    private _writeRouteInfoToFiles(path: string, routeName: string, matrix: Matrix, positions: Position[]) {
-        const fileWritePromises = [
-            writeFileAsync(`${path}/matrix.json`, JSON.stringify(matrix)),
-            writeFileAsync(`${path}/positions.json`, JSON.stringify(positions)),
-        ];
-
-        Promise.all(fileWritePromises).catch((error) => {
-            console.error("Error writing files:", error);
-        });
     }
 
     hasDifferentCoordinates(member1: Coordinates, member2: Coordinates) {

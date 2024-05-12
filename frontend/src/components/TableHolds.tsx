@@ -7,23 +7,10 @@ type Props = {
     numRows: number;
     numCols: number;
     holds: Hold[];
-    startRouting: boolean;
-    setStartRouting: React.Dispatch<React.SetStateAction<boolean>>;
-    routeName: string;
-    setRouteName: React.Dispatch<React.SetStateAction<string>>;
     transition: boolean;
 };
 
-const TableHolds = ({
-    numRows,
-    numCols,
-    holds,
-    startRouting,
-    setStartRouting,
-    routeName,
-    setRouteName,
-    transition,
-}: Props) => {
+const TableHolds = ({ numRows, numCols, holds, transition }: Props) => {
     const [animation, setAnimation] = useState<string>("");
     const [height, setHeight] = useState<string>("auto");
 
@@ -37,12 +24,9 @@ const TableHolds = ({
                 if (hold) {
                     const hold_image_format = `${hold?.image_format}`;
                     row.push(
-                        <div
-                            draggable={hold !== undefined && startRouting}
-                            onDragStart={(e) => handleOnDrag(e, { ...hold, hold_id })}
-                        >
+                        <div draggable={hold !== undefined} onDragStart={(e) => handleOnDrag(e, { ...hold, hold_id })}>
                             <img
-                                draggable={hold !== undefined && startRouting}
+                                draggable={hold !== undefined}
                                 className="hold-image"
                                 src={getHoldImageURL(`${hold_id}.${hold_image_format}`)}
                                 alt={`hold_${numRows * i + j}`}
@@ -56,7 +40,7 @@ const TableHolds = ({
             result.push(row);
         }
         return result;
-    }, [numRows, numCols, holds, startRouting]);
+    }, [numRows, numCols, holds]);
 
     const handleOnDrag = (e: React.DragEvent<HTMLDivElement>, data: HoldEntity) => {
         e.dataTransfer.clearData();
@@ -64,10 +48,6 @@ const TableHolds = ({
             "application/to-route-setting-panel",
             JSON.stringify({ ...data, component: "TableHolds" })
         );
-    };
-
-    const handleRouteNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setRouteName(e.target.value);
     };
 
     useEffect(() => {
@@ -109,21 +89,6 @@ const TableHolds = ({
                         ))}
                     </tbody>
                 </table>
-            </div>
-            <div className="flex flex-row justify-between">
-                <button
-                    className={`action-button-${startRouting ? "orange" : "blue"}`}
-                    onClick={() => setStartRouting(!startRouting)}
-                >
-                    {startRouting ? "Cancel" : "Plan"}
-                </button>
-                <input
-                    className="input max-w-sm"
-                    type="text"
-                    placeholder="Route name"
-                    value={routeName}
-                    onChange={handleRouteNameChange}
-                ></input>
             </div>
         </div>
     );

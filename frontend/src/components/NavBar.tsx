@@ -2,6 +2,7 @@ import { Fragment, useEffect } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { useLocation, useNavigate } from "react-router-dom";
+import { UserTypeDB } from "../types";
 
 const navigation = [
     { name: "All Routes", href: "/routes", current: true },
@@ -12,7 +13,11 @@ const classNames = (...classes: string[]) => {
     return classes.filter(Boolean).join(" ");
 };
 
-const Navbar = () => {
+type NavbarProps = {
+    user: Omit<UserTypeDB, "password"> | null;
+};
+
+const Navbar = ({ user }: NavbarProps) => {
     const navigate = useNavigate();
     const currentLocation = useLocation();
     const signOut = () => {

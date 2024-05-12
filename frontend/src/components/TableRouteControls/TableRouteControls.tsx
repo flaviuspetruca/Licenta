@@ -10,13 +10,17 @@ type Props = {
     usedMembers: Member[];
     currentPositionIndex: number;
     hasAudioFiles: boolean;
-    isGenerating: boolean;
-    generationDisabled: boolean;
+    processing: boolean;
+    generated: boolean;
+    difficulty: string;
+    routeName: string;
+    handleRouteNameChange: (routeName: string) => void;
     handlePositionsSetterBarAction: (action: PositionSetterBarAction, args?: Member) => void;
     handleRouteSubmit: () => void;
     handleSetDebugRoute: () => void;
     handleRemoveDrop: (event: React.DragEvent<HTMLDivElement>) => void;
     handleDragOver: (event: React.DragEvent<HTMLTableElement>) => void;
+    handleDifficultyChange: (difficulty: string) => void;
     openModal: (() => void) | undefined;
 };
 
@@ -26,13 +30,17 @@ const TableRouteControls: React.FC<Props> = ({
     usedMembers,
     currentPositionIndex,
     hasAudioFiles,
-    isGenerating,
-    generationDisabled,
+    processing,
+    generated,
+    routeName,
+    difficulty,
+    handleRouteNameChange,
     handlePositionsSetterBarAction,
     handleRouteSubmit,
     handleSetDebugRoute,
     handleRemoveDrop,
     handleDragOver,
+    handleDifficultyChange,
     openModal,
 }) => {
     return (
@@ -46,13 +54,17 @@ const TableRouteControls: React.FC<Props> = ({
                 disabled={hasAudioFiles}
             />
             <TableRouteActions
+                handleRouteNameChange={handleRouteNameChange}
                 handleRouteSubmit={handleRouteSubmit}
                 handleSetDebugRoute={handleSetDebugRoute}
                 handleRemoveDrop={handleRemoveDrop}
                 handleDragOver={handleDragOver}
+                handleDifficultyChange={handleDifficultyChange}
+                routeName={routeName}
+                difficulty={difficulty}
                 openModal={openModal}
-                isGenerating={isGenerating}
-                generationDisabled={generationDisabled}
+                processing={processing}
+                generated={generated}
             />
         </div>
     );

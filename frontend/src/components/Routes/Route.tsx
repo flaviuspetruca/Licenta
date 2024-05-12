@@ -8,12 +8,14 @@ import RouteSettingTable from "../RouteSettingTable/RouteSettingTable";
 import Player from "../Player/Player";
 import LoadingWrapper from "../UI/LoadingWrapper";
 import { AlertType, useAlert } from "../UI/AlertProvider";
+import { AudioData } from "../MainPanel";
 
 export type RouteQueryData = {
     id: number;
     name: string;
     dir_id: string;
     gym_id: number;
+    difficulty: string;
     gym: {
         name: string;
         location: string;
@@ -27,12 +29,8 @@ export type RouteTotalData = {
     route: RouteQueryData;
     matrix: Matrix;
     positions: Position[];
-    audioFiles: {
-        audio: string;
-        member: string;
-    }[][];
     admin: boolean;
-};
+} & AudioData;
 
 const Route = () => {
     const [loading, setLoading] = useState(true);
@@ -68,23 +66,30 @@ const Route = () => {
                 showAlert({ title: "Error", description: "Failed to retrieve route", type: AlertType.ERROR });
                 setData(undefined);
             }
-            const data = await response.json();
-            setData(data);
+
+            const data = await response.formData();
+            const routeData: RouteTotalData = JSON.parse(data.get("json_data") as string);
+            if (!routeData) {
+                showAlert({ title: "Error", description: "Failed to generate route. No data", type: AlertType.ERROR });
+                return;
+            }
+            routeData.blobs = data.getAll("audio_blob") as File[];
+            setData(routeData);
         }
         getRoute();
     }, [id, showAlert]);
     return (
         <LoadingWrapper isLoading={loading} text={data?.route.name}>
-            <section>
-                <div className="hero bg-base-200">
+            <section className="flex items-center justify-center w-full">
+                <div className="hero bg-base-200 max-w-128">
                     <div className="hero-content flex-col lg:flex-row">
                         <img
                             src="/outputs/route.jpg"
                             alt={`${data?.route.gym.name} climbing gym`}
-                            className="w-full h-full"
+                            className="w-96"
                         ></img>
                         <div>
-                            <h1 className="text-5xl font-bold">{data?.route.gym?.location}</h1>
+                            <h1 className="text-5xl font-bold">{data?.route.gym.name}</h1>
                         </div>
                         {data?.admin && (
                             <Link
@@ -97,14 +102,16 @@ const Route = () => {
                     </div>
                 </div>
             </section>
-            <section className="w-fit bg-route-setting-table p-6 rounded-2xl">
-                <RouteSettingTable
-                    matrix={data?.matrix}
-                    currentPosition={currentPosition}
-                    previousPosition={previousPosition}
-                    highlightedMember={routeHighlight?.member}
-                />
-                <Player audioFiles={data?.audioFiles || []} transition setRouteHighlight={setRouteHighlight} />
+            <section className="flex items-center justify-center w-full">
+                <div className="w-fit bg-route-setting-table p-6 rounded-2xl">
+                    <RouteSettingTable
+                        matrix={data?.matrix}
+                        currentPosition={currentPosition}
+                        previousPosition={previousPosition}
+                        highlightedMember={routeHighlight?.member}
+                    />
+                    <Player audioData={data as AudioData} transition setRouteHighlight={setRouteHighlight} />
+                </div>
             </section>
         </LoadingWrapper>
     );

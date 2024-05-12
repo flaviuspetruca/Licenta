@@ -27,16 +27,34 @@ module.exports = {
             transitionDuration: {
                 10000: "10000ms",
             },
+            width: {
+                100: "30rem",
+                114: "45rem",
+                128: "70rem",
+            },
+            height: {
+                100: "30rem",
+                114: "45rem",
+                128: "70rem",
+            },
             maxHeight: {
+                100: "30rem",
+                114: "45rem",
                 128: "70rem",
             },
             minHeight: {
+                100: "30rem",
+                114: "45rem",
                 128: "70rem",
             },
             minWidth: {
+                100: "30rem",
+                114: "45rem",
                 128: "70rem",
             },
             maxWidth: {
+                100: "30rem",
+                114: "45rem",
                 128: "70rem",
             },
             flexBasis: {

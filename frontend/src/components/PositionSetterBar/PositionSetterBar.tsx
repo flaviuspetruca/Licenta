@@ -21,7 +21,7 @@ const PositionSetterBar = ({
     return state === PositionSetterBarState.HIDDEN ? (
         <div></div>
     ) : (
-        <div className="flex basis-3/5 h-fit flex-row bg-slate-200 rounded-lg p-3 gap-5">
+        <div className="flex h-fit flex-row bg-slate-200 rounded-lg p-3 gap-5">
             {state === PositionSetterBarState.ALLOW_EDIT && (
                 <button
                     className="action-button-blue"
@@ -43,9 +43,9 @@ const PositionSetterBar = ({
                     <div className="flex flex-row gap-2">
                         <button
                             className="action-button-orange"
-                            onClick={() => handlePositionsSetterBarAction(PositionSetterBarAction.CANCEL)}
+                            onClick={() => handlePositionsSetterBarAction(PositionSetterBarAction.CLOSE)}
                         >
-                            Cancel
+                            Close
                         </button>
                         <button
                             className="action-button-dark-blue"

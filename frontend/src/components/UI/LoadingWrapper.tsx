@@ -12,7 +12,7 @@ const LoadingWrapper = ({ isLoading, text, children }: Props) => {
             <h1 className="text-8xl font-bold leading-7 ml-10 mb-10 text-gray-900 sm:truncate sm:text-8xl sm:tracking-tight">
                 {text}
             </h1>
-            <div className="p-5">
+            <div className="p-5 flex flex-row flex-wrap">
                 <Loading isLoading={isLoading}>{children}</Loading>
             </div>
         </div>

@@ -39,6 +39,7 @@ export const GymModal = forwardRef(({ gym_id, refresh, setRefresh }: Props, ref)
         }
         resetDialog();
         setRefresh(!refresh);
+        showAlert({ title: "Success", description: "User added to gym", type: AlertType.SUCCESS });
     };
 
     useImperativeHandle(ref, () => ({
@@ -52,7 +53,7 @@ export const GymModal = forwardRef(({ gym_id, refresh, setRefresh }: Props, ref)
                 <h3 className="text-2xl font-bold">Add permissions</h3>
                 <div className="p-5 mt-2">
                     <form onSubmit={handleInsert}>
-                        <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
+                        <label htmlFor="username" className="input-label">
                             Username
                         </label>
                         <input
@@ -63,7 +64,7 @@ export const GymModal = forwardRef(({ gym_id, refresh, setRefresh }: Props, ref)
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
-                        <label htmlFor="permission" className="mt-2 block text-sm font-medium leading-6 text-gray-900">
+                        <label htmlFor="permission" className="mt-2 input-label">
                             Role
                         </label>
                         <Listbox value={role} onChange={setRole}>

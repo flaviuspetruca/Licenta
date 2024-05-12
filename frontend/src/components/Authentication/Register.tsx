@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_ENDPOINT } from "../../configs";
 import { fetchFn } from "../../utils/http";
 import { AlertType, useAlert } from "../UI/AlertProvider";
+import { useEffect } from "react";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -30,6 +31,12 @@ export default function Register() {
         }
     };
 
+    useEffect(() => {
+        if (localStorage.getItem("token")) {
+            navigate("/routes");
+        }
+    }, [navigate]);
+
     return (
         <>
             <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
@@ -42,7 +49,33 @@ export default function Register() {
                 <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
+                            <label htmlFor="name" className="input-label">
+                                Name
+                            </label>
+                            <div className="mt-2">
+                                <input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    autoComplete="name"
+                                    required
+                                    className="input-class"
+                                />
+                            </div>
+                            <label htmlFor="surname" className="input-label">
+                                Surname
+                            </label>
+                            <div className="mt-2">
+                                <input
+                                    id="surname"
+                                    name="surname"
+                                    type="text"
+                                    autoComplete="surname"
+                                    required
+                                    className="input-class"
+                                />
+                            </div>
+                            <label htmlFor="username" className="input-label">
                                 Username
                             </label>
                             <div className="mt-2">
@@ -52,20 +85,49 @@ export default function Register() {
                                     type="text"
                                     autoComplete="username"
                                     required
-                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    className="input-class"
+                                />
+                            </div>
+                            <label htmlFor="email" className="input-label">
+                                Email
+                            </label>
+                            <div className="mt-2">
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    autoComplete="email"
+                                    required
+                                    className="input-class"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <div className="mt-2">
+                            <label htmlFor="password" className="input-label">
+                                Password
+                            </label>
+                            <div className="mt-2 mb-2">
                                 <input
                                     id="password"
                                     name="password"
                                     type="password"
                                     autoComplete="current-password"
                                     required
-                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    className="input-class"
+                                />
+                            </div>
+                            <label htmlFor="password_confirmation" className="input-label">
+                                Confirm Password
+                            </label>
+                            <div className="mt-2">
+                                <input
+                                    id="password_confirmation"
+                                    name="password_confirmation"
+                                    type="password"
+                                    autoComplete="current-password"
+                                    required
+                                    className="input-class"
                                 />
                             </div>
                         </div>

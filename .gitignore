@@ -134,3 +134,7 @@ backend/src/assets/audio/*
 backend/text2speech/__pycache__
 
 *.psd
+
+backend/src/assets/tmp/*
+
+frontend_vite

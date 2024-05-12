@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
-import { AUDIO_BACKEND_ENDPOINT, BACKEND_ENDPOINT } from "../../configs";
+import { AUDIO_BACKEND_ENDPOINT } from "../../configs";
 import { Member } from "../../utils/utils";
 import { fetchFn } from "../../utils/http";
 import { ReactComponent as DownloadSvg } from "../../assets/download.svg";
 import Spinner from "../UI/Spinner";
 import { AlertType, useAlert } from "../UI/AlertProvider";
+import { AudioData } from "../MainPanel";
 
 type Props = {
-    audioFiles: { audio: string; member: string }[][];
+    audioData: AudioData | undefined;
     setRouteHighlight: React.Dispatch<React.SetStateAction<{ positionIndex: number; member: Member } | undefined>>;
     transition: boolean;
 };
 
-const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
+const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
     const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
     const { showAlert } = useAlert();
@@ -24,25 +25,33 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
         const handleRouteHighlight = () => {
             setRouteHighlight({
                 positionIndex: currentPositionIndex,
-                member: audioFiles[currentPositionIndex][currentAudioIndex].member as Member,
+                member: audioData?.data[currentPositionIndex][currentAudioIndex].member as Member,
             });
         };
 
         if (audioPlayer && audioPlayer.current) {
             // Update audio source when current audio index changes
-            if (audioFiles.length === 0) return;
-            audioPlayer.current.src = `${BACKEND_ENDPOINT}/audio/${audioFiles[currentPositionIndex][currentAudioIndex].audio}`;
+            if (audioData?.data.length === 0) return;
+            console.log(audioData);
+            const blobName = audioData?.data[currentPositionIndex][currentAudioIndex].audioFileName;
+            const blob = audioData?.blobs.find((blob) => blob.name === blobName);
+            if (!blob) {
+                showAlert({ title: "Error", description: "Failed to load audio", type: AlertType.ERROR });
+                return;
+            }
+            audioPlayer.current.src = URL.createObjectURL(blob as Blob);
             audioPlayer.current.load();
             audioPlayer.current.pause();
             handleRouteHighlight();
         }
-    }, [currentAudioIndex, currentPositionIndex, audioFiles, audioPlayer, setRouteHighlight]);
+    }, [currentAudioIndex, currentPositionIndex, audioData, audioPlayer, setRouteHighlight, showAlert]);
 
     const handleAudioChange = (direction: "next" | "previous") => {
+        if (!audioData) return;
         const isNext = direction === "next";
-        const isAtEnd = currentAudioIndex === audioFiles[currentPositionIndex].length - 1;
+        const isAtEnd = currentAudioIndex === audioData.data[currentPositionIndex].length - 1;
         const isAtStart = currentAudioIndex === 0;
-        const isLastPosition = currentPositionIndex === Object.keys(audioFiles).length - 1;
+        const isLastPosition = currentPositionIndex === Object.keys(audioData.data).length - 1;
         const isFirstPosition = currentPositionIndex === 0;
 
         if ((isNext && isAtEnd) || (!isNext && isAtStart)) {
@@ -51,10 +60,10 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
                     ? 0
                     : currentPositionIndex + 1
                 : isFirstPosition
-                  ? Object.keys(audioFiles).length - 1
+                  ? Object.keys(audioData.data).length - 1
                   : currentPositionIndex - 1;
             setCurrentPositionIndex(newPositionIndex);
-            const newAudioIndex = isNext ? 0 : audioFiles[newPositionIndex].length - 1;
+            const newAudioIndex = isNext ? 0 : audioData.data[newPositionIndex].length - 1;
             setCurrentAudioIndex(newAudioIndex);
         } else {
             const newAudioIndex = isNext ? currentAudioIndex + 1 : currentAudioIndex - 1;
@@ -65,16 +74,17 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
     const handleNextAudio = () => handleAudioChange("next");
     const handlePreviousAudio = () => handleAudioChange("previous");
 
-    const getAudioDirectory = () => {
-        return audioFiles[0][0].audio.split("/")[0];
-    };
-
     const handleDownloadAudio = async () => {
         if (downloading) return;
+        if (!audioData) {
+            showAlert({ title: "Error", description: "No audio data found", type: AlertType.ERROR });
+            return;
+        }
+
         setDownloading(true);
         const url = new URL(AUDIO_BACKEND_ENDPOINT);
         url.pathname = "/merge-audio";
-        url.searchParams.append("directory_path", getAudioDirectory());
+        url.searchParams.append("directory_path", audioData?.path);
         const response = await fetchFn(url.toString(), {
             headers: {
                 "Access-Control-Allow-Origin": "*",
@@ -88,20 +98,16 @@ const Player = ({ audioFiles, setRouteHighlight, transition }: Props) => {
         }
 
         const blob = await response.blob();
-        // Extract the filename from the URL
         const urlParts = url.toString().split("/");
         const filename = urlParts[urlParts.length - 1];
 
-        // Create a URL object from the blob
         const blobUrl = URL.createObjectURL(blob);
 
-        // Create an anchor element to trigger the download
         const a = document.createElement("a");
         a.href = blobUrl;
         a.download = filename;
         a.click();
 
-        // Revoke the blob URL to free up memory
         URL.revokeObjectURL(blobUrl);
     };
 

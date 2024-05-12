@@ -38,7 +38,7 @@ const Routes = () => {
     );
     return (
         <LoadingWrapper isLoading={loading} text={"All routes"}>
-            {renderContent}
+            <div className="flex flex-wrap align-center gap-5">{renderContent}</div>
         </LoadingWrapper>
     );
 };

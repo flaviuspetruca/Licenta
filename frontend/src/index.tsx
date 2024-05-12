@@ -1,7 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
+import { ErrorBoundary } from "react-error-boundary";
+import { RouterProvider, createBrowserRouter, useLocation, useNavigate, Outlet } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import "./index.css";
-import { RouterProvider, createBrowserRouter, useLocation, useNavigate } from "react-router-dom";
+import "./Platform.scss";
 import NotFound from "./components/NotFound/NotFound";
 import Login from "./components/Authentication/Login";
 import Register from "./components/Authentication/Register";
@@ -9,26 +12,41 @@ import Gyms from "./components/Gyms/Gyms";
 import Routes from "./components/Routes/Routes";
 import Route from "./components/Routes/Route";
 import Navbar from "./components/NavBar";
-import { Outlet } from "react-router-dom";
 import GymAdministrator from "./components/Gyms/GymAdministrator";
 import Gym from "./components/Gyms/Gym";
-import { ErrorBoundary } from "react-error-boundary";
 import { AlertProvider } from "./components/UI/AlertProvider";
 import MainPanel from "./components/MainPanel";
+import { UserTypeDB } from "./types";
 
 const NavbarWrapper = () => {
+    const [user, setUser] = useState<Omit<UserTypeDB, "password"> | null>(null);
     const navigate = useNavigate();
     const path = useLocation().pathname;
+
     useEffect(() => {
         if (path === "/") {
             navigate("/routes");
         }
-    });
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
+        }
+
+        const decoded = jwtDecode(token as string);
+        if (new Date().getTime() / 1000 > (decoded.exp as number)) {
+            localStorage.removeItem("token");
+            navigate("/login");
+        }
+        delete decoded.exp;
+        delete decoded.iat;
+        setUser(decoded as Omit<UserTypeDB, "password">);
+    }, [navigate, path]);
 
     return (
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
             <AlertProvider>
-                <Navbar />
+                <Navbar user={user} />
                 <Outlet />
             </AlertProvider>
         </ErrorBoundary>

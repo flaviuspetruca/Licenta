@@ -1,25 +1,29 @@
 import pyttsx3
 from fastapi import FastAPI, HTTPException
-from starlette.responses import StreamingResponse
-from starlette.responses import Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
+from dotenv import load_dotenv
 import uuid
 import uvicorn
 import os
 import io
 import json
+import zipfile
+from gtts import gTTS
+
 from audio_merge import merge_audio_files_with_delay
 
-from fastapi.middleware.cors import CORSMiddleware
+load_dotenv()
 
 origins = [
-    "http://localhost",
-    "http://localhost:3000",
+    os.environ.get("REST_API_URL"),
+    os.environ.get("REST_API_URL") + os.environ.get("REST_API_PORT"),
 ]
 
 
 app = FastAPI()
-mp3_directory = "backend/src/assets/audio"
+mp3_directory = "backend/src/assets/tmp"
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,15 +39,20 @@ class Texts(BaseModel):
 
 
 @app.post("/text2speech")
-async def process_text(body: Texts):
-    dir_path = str(uuid.uuid4())
-    os.mkdir(mp3_directory + "/" + dir_path)
-    file_names = []
+def process_text(body: Texts):
+    zip_buffer = io.BytesIO()
     for index, text in enumerate(body.texts):
-        file_name = text2speech(dir_path, index, text)
-        file_names.append(dir_path + "/" + file_name)
+        mp3_data = text2speech(text)
+        file_name = str(index) + ".mp3"
+        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+            zip_file.writestr(f"{file_name}", mp3_data)
 
-    return get_mp3_files(file_names)
+    headers = {
+        "Content-Disposition": "attachment; filename=audio_files.zip",
+        "Content-Type": "application/zip",
+    }
+
+    return Response(content=zip_buffer.getvalue(), headers=headers)
 
 
 @app.get("/merge-audio")
@@ -71,16 +80,35 @@ def get_mp3_files(file_ids: list[str]):
     return Response(content=json.dumps(file_ids), media_type="application/json")
 
 
-def text2speech(dir_path, index: int, text: str):
+def text2speech(text: str):
     engine = pyttsx3.init()
-    file_name = str(index) + ".mp3"
     engine.setProperty("rate", 120)
     engine.setProperty("volume", 1)
     voices = engine.getProperty("voices")
     engine.setProperty("voice", voices[1].id)
-    engine.save_to_file(text, mp3_directory + "/" + dir_path + "/" + file_name)
+    temp_file = f"temp_{str(uuid.uuid4())}.mp3"
+    engine.save_to_file(text, temp_file)
     engine.runAndWait()
-    return file_name
+    with open(temp_file, "rb") as f:
+        mp3_data = f.read()
+    os.remove(temp_file)
+    return mp3_data
+
+
+def text2speech_GTTS(text: str):
+    try:
+        tts = gTTS(text=text, lang="en")
+        temp_file = f"temp_{str(uuid.uuid4())}.mp3"
+        tts.save(temp_file)
+        with open(temp_file, "rb") as f:
+            mp3_data = f.read()
+        os.remove(temp_file)
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500, detail="Error in text to speech conversion"
+        )
+    return mp3_data
 
 
 if __name__ == "__main__":
