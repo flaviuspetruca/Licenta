@@ -9,6 +9,7 @@ class Gym extends Model {
     admin_id: number;
     location: string;
     name: string;
+    thumbnail: string;
 }
 Gym.init(
     {
@@ -25,6 +26,10 @@ Gym.init(
             type: DataTypes.STRING,
             allowNull: false,
         },
+        thumbnail: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
     },
     {
         sequelize,
@@ -34,10 +39,10 @@ Gym.init(
     }
 );
 
-const insertGym = async () => {
+const insertGym = async (name: string, location: string, thumbnail: string) => {
     try {
-        await Gym.create();
-        return;
+        const gym = await Gym.create({ name, location, thumbnail });
+        return gym;
     } catch (error) {
         lgr.ierror("Error inserting gym", error);
         return null;
@@ -49,7 +54,16 @@ const findGym = async ({ id, admin_id }: { id?: number; admin_id?: number }) => 
     const where = admin_id ? { "$users.data.role$": "ADMIN", "$users.id$": admin_id } : {};
     const gym = await Gym.findOne({
         where: { id, ...where },
-        attributes: ["id", "name", "location", [sequelize.fn("COUNT", sequelize.col("routes.id")), "nr_routes"]],
+        attributes: [
+            "id",
+            "name",
+            "location",
+            "thumbnail",
+            [
+                sequelize.literal(`(SELECT COUNT(*) FROM public."Routes" as routes WHERE routes.gym_id = "Gym"."id")`),
+                "nr_routes",
+            ],
+        ],
         include: [
             {
                 model: User,
@@ -82,7 +96,16 @@ const findGym = async ({ id, admin_id }: { id?: number; admin_id?: number }) => 
 const findGyms = async (user_id?: number) => {
     const where = user_id ? { "$users.data.role$": "ADMIN", "$users.id$": user_id } : {};
     const gyms = await Gym.findAll({
-        attributes: ["id", "name", "location", [sequelize.fn("COUNT", sequelize.col("routes.id")), "nr_routes"]],
+        attributes: [
+            "id",
+            "name",
+            "location",
+            "thumbnail",
+            [
+                sequelize.literal(`(SELECT COUNT(*) FROM public."Routes" as routes WHERE routes.gym_id = "Gym"."id")`),
+                "nr_routes",
+            ],
+        ],
         include: [
             {
                 model: User,

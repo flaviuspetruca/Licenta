@@ -30,22 +30,14 @@ const PositionSetterBar = ({
                     Edit
                 </button>
             )}
-            {state === PositionSetterBarState.CLOSED && (
-                <button
-                    className="action-button-blue"
-                    onClick={() => handlePositionsSetterBarAction(PositionSetterBarAction.SET_POSITIONS)}
-                >
-                    Set positions
-                </button>
-            )}
             {state === PositionSetterBarState.OPEN && (
                 <div className="flex flex-col">
                     <div className="flex flex-row gap-2">
                         <button
                             className="action-button-orange"
-                            onClick={() => handlePositionsSetterBarAction(PositionSetterBarAction.CLOSE)}
+                            onClick={() => handlePositionsSetterBarAction(PositionSetterBarAction.RESET)}
                         >
-                            Close
+                            Reset
                         </button>
                         <button
                             className="action-button-dark-blue"

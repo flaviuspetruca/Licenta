@@ -10,15 +10,15 @@ import { buildHttpHeaders, fetchFn } from "../utils/http";
 import AppModal from "./AppModal";
 import { AlertType, useAlert } from "./UI/AlertProvider";
 import { useLocation, useParams } from "react-router-dom";
-import { RouteTotalData } from "./Routes/Route";
 import LoadingWrapper from "./UI/LoadingWrapper";
 
 type TableRouteRef = {
     resetPanel: () => void;
     setMatrix: (matrix: Matrix) => void;
-    setPositions: (positions: Position[]) => void;
     setRouteName: (name: string) => void;
     setDifficulty: (difficulty: string) => void;
+    handleSetRetrievedPositions: (positions: Position[]) => void;
+    handleEdit: () => void;
 };
 
 export type AudioData = {
@@ -40,42 +40,14 @@ const MainPanel = () => {
 
     const { id } = useParams();
     const location = useLocation();
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         async function verifyAdmin() {
-            setLoading(true);
             await fetchFn(`${BACKEND_ENDPOINT}/verify-admin-gym/${id}`, buildHttpHeaders());
-            setLoading(false);
-        }
-
-        async function getRoute() {
-            const queryParams = new URLSearchParams(location.search);
-            const route_id = queryParams.get("route_id");
-            if (!route_id) {
-                return;
-            }
-            setLoading(true);
-            const response = await fetchFn(`${BACKEND_ENDPOINT}/route/${route_id}`, buildHttpHeaders());
-            if (!response.ok) {
-                return;
-            }
-            setLoading(false);
-            const audioData: RouteTotalData = await response.json();
-            tableRouteRef.current?.setMatrix(audioData.matrix);
-            tableRouteRef.current?.setPositions(audioData.positions);
-            tableRouteRef.current?.setRouteName(audioData.route.name);
-            tableRouteRef.current?.setDifficulty(audioData.route.difficulty);
-            if (!audioData.data) {
-                showAlert({ title: "Error", description: "Failed to generate", type: AlertType.ERROR });
-                return;
-            }
-            setAudioData({ ...audioData });
-            console.log(audioData);
         }
 
         verifyAdmin();
-        getRoute();
     }, [id, location, showAlert]);
 
     useEffect(() => {
@@ -126,6 +98,7 @@ const MainPanel = () => {
                         hasAudioFiles={Object.keys(audioData?.data || []).length > 0}
                         routeHighlight={routeHighlight}
                         setRouteHighlight={setRouteHighlight}
+                        setLoading={setLoading}
                     />
                 </div>
             </div>

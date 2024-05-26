@@ -1,10 +1,15 @@
-const buildHttpHeaders = (method?: string, body?: string, content_type?: string) => {
+const buildHttpHeaders = (method?: string, body?: string | FormData, content_type?: string) => {
+    const headers: { [key: string]: string } = {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+    };
+
+    if (content_type !== "") {
+        headers["Content-Type"] = content_type || "application/json";
+    }
+
     return {
         method: method ? method : "GET",
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": content_type ? content_type : "application/json",
-        },
+        headers,
         body: body ? body : undefined,
     };
 };

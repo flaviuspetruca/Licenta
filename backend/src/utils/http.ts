@@ -12,6 +12,8 @@ export interface RequestContext {
     user?: Omit<User, "password">;
     route?: { matrix: Matrix; positions: Position[] };
     gym?: { admin: boolean };
+    gym_thumbnail?: string;
+    route_thumbnail?: string;
 }
 
 export const uuid_mapper = (req: Request, _res: Response, next: NextFunction) => {

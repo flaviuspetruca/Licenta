@@ -31,34 +31,47 @@ module.exports = {
                 100: "30rem",
                 114: "45rem",
                 128: "70rem",
+                144: "80rem",
             },
             height: {
                 100: "30rem",
                 114: "45rem",
                 128: "70rem",
+                144: "80rem",
             },
             maxHeight: {
                 100: "30rem",
                 114: "45rem",
                 128: "70rem",
+                144: "80rem",
             },
             minHeight: {
                 100: "30rem",
                 114: "45rem",
                 128: "70rem",
+                144: "80rem",
             },
             minWidth: {
                 100: "30rem",
                 114: "45rem",
                 128: "70rem",
+                144: "80rem",
             },
             maxWidth: {
                 100: "30rem",
                 114: "45rem",
                 128: "70rem",
+                144: "80rem",
             },
             flexBasis: {
                 "3/5": "60%",
+            },
+            screens: {
+                xs: "475px",
+            },
+            backgroundColor: {
+                "light-blue": "#009364",
+                "light-green": "#CEFBE3",
             },
         },
     },

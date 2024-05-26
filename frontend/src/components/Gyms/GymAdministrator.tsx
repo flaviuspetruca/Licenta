@@ -22,8 +22,14 @@ const GymAdministrator = () => {
                 showAlert({ title: "Error", description: "Failed to retrieve gyms", type: AlertType.ERROR });
                 return;
             }
-            const data = await response.json();
-            setGyms([...data]);
+            const data = await response.formData();
+            const gyms = JSON.parse(data.get("json_data") as string);
+            const thumbnails = data.getAll("thumbnail") as Blob[];
+            const queryData = gyms.map((gym: GymQueryData, index: number) => {
+                gym.thumbnail = thumbnails[index];
+                return gym;
+            });
+            setGyms([...queryData]);
         }
         getGyms();
     }, [showAlert]);
@@ -47,8 +53,8 @@ const GymAdministrator = () => {
     );
 
     return (
-        <LoadingWrapper isLoading={loading} text={"Admin"}>
-            <div className="gym-list">{renderContent}</div>
+        <LoadingWrapper isLoading={loading} text={"Admin"} contentStyle="gym-list">
+            {renderContent}
         </LoadingWrapper>
     );
 };

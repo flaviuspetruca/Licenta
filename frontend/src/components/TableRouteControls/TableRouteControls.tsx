@@ -12,6 +12,7 @@ type Props = {
     hasAudioFiles: boolean;
     processing: boolean;
     generated: boolean;
+    isRouteSaved: boolean;
     difficulty: string;
     routeName: string;
     handleRouteNameChange: (routeName: string) => void;
@@ -21,6 +22,7 @@ type Props = {
     handleRemoveDrop: (event: React.DragEvent<HTMLDivElement>) => void;
     handleDragOver: (event: React.DragEvent<HTMLTableElement>) => void;
     handleDifficultyChange: (difficulty: string) => void;
+    handlePictureChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     openModal: (() => void) | undefined;
 };
 
@@ -32,6 +34,7 @@ const TableRouteControls: React.FC<Props> = ({
     hasAudioFiles,
     processing,
     generated,
+    isRouteSaved,
     routeName,
     difficulty,
     handleRouteNameChange,
@@ -41,6 +44,7 @@ const TableRouteControls: React.FC<Props> = ({
     handleRemoveDrop,
     handleDragOver,
     handleDifficultyChange,
+    handlePictureChange,
     openModal,
 }) => {
     return (
@@ -60,11 +64,13 @@ const TableRouteControls: React.FC<Props> = ({
                 handleRemoveDrop={handleRemoveDrop}
                 handleDragOver={handleDragOver}
                 handleDifficultyChange={handleDifficultyChange}
+                handlePictureChange={handlePictureChange}
                 routeName={routeName}
                 difficulty={difficulty}
                 openModal={openModal}
                 processing={processing}
                 generated={generated}
+                isRouteSaved={isRouteSaved}
             />
         </div>
     );

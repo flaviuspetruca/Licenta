@@ -22,6 +22,19 @@ User.init(
             allowNull: false,
             unique: true,
         },
+        email: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
+        },
+        firstname: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        surname: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
         password: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -40,12 +53,20 @@ User.init(
     }
 );
 
-const insertUser = async (username: string, password: string, role: UserRole = "user") => {
+const insertUser = async (
+    username: string,
+    password: string,
+    email: string,
+    firstname: string,
+    surname: string,
+    role: UserRole = "user"
+) => {
     try {
-        const user = await User.create({ username, password, role });
+        console.log(username, password, role, email, firstname, surname);
+        const user = await User.create({ username, password, role, email, firstname, surname });
         return user;
     } catch (error) {
-        lgr.ierror("Error inserting user");
+        lgr.ierror("Error inserting user", error);
         return null;
     }
 };

@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { AUDIO_BACKEND_ENDPOINT } from "../../configs";
 import { Member } from "../../utils/utils";
-import { fetchFn } from "../../utils/http";
 import { ReactComponent as DownloadSvg } from "../../assets/download.svg";
 import Spinner from "../UI/Spinner";
 import { AlertType, useAlert } from "../UI/AlertProvider";
@@ -29,10 +27,7 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
             });
         };
 
-        if (audioPlayer && audioPlayer.current) {
-            // Update audio source when current audio index changes
-            if (audioData?.data.length === 0) return;
-            console.log(audioData);
+        if (audioPlayer && audioPlayer.current && audioData && audioData.data.length > 0) {
             const blobName = audioData?.data[currentPositionIndex][currentAudioIndex].audioFileName;
             const blob = audioData?.blobs.find((blob) => blob.name === blobName);
             if (!blob) {
@@ -82,30 +77,19 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
         }
 
         setDownloading(true);
-        const url = new URL(AUDIO_BACKEND_ENDPOINT);
-        url.pathname = "/merge-audio";
-        url.searchParams.append("directory_path", audioData?.path);
-        const response = await fetchFn(url.toString(), {
-            headers: {
-                "Access-Control-Allow-Origin": "*",
-            },
-        });
-        setDownloading(false);
-
-        if (!response.ok) {
+        const audio = audioData.blobs.find((blob) => blob.name === "merged.mp3");
+        if (!audio) {
             showAlert({ title: "Error", description: "Failed to download audio", type: AlertType.ERROR });
+            setDownloading(false);
             return;
         }
+        setDownloading(false);
 
-        const blob = await response.blob();
-        const urlParts = url.toString().split("/");
-        const filename = urlParts[urlParts.length - 1];
-
-        const blobUrl = URL.createObjectURL(blob);
+        const blobUrl = URL.createObjectURL(audio as Blob);
 
         const a = document.createElement("a");
         a.href = blobUrl;
-        a.download = filename;
+        a.download = "merged.mp3";
         a.click();
 
         URL.revokeObjectURL(blobUrl);

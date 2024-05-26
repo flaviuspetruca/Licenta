@@ -10,7 +10,6 @@ import { logger_middleware } from "../utils/http";
 import auth from "../routes/auth";
 import gym from "../routes/gym";
 import route from "../routes/route";
-import { downloadFile, uploadFile } from "../azure/connection";
 
 const corsOptions: CorsOptions = {
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -25,7 +24,7 @@ const setupMiddleware = (app: express.Application) => {
     app.use(uuid_mapper);
     app.use(logger_middleware);
     app.use(authorization);
-    app.use(express.json());
+    app.use(express.json({ limit: "50mb" }));
     app.use("/", auth);
     app.use("/", gym);
     app.use("/", route);

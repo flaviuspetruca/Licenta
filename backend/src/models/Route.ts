@@ -3,6 +3,8 @@ import { DataTypes, Model, Op } from "sequelize";
 import lgr from "../utils/logger";
 import Gym from "./Gym";
 import User from "./User";
+import { deleteFile } from "../azure/connection";
+import { AZURE_ROUTE_IMAGES } from "../configs/globals";
 
 class Route extends Model {
     id: number;
@@ -10,6 +12,8 @@ class Route extends Model {
     dir_id: string;
     gym_id: number;
     name: string;
+    difficulty: string;
+    thumbnail: string;
 }
 Route.init(
     {
@@ -36,7 +40,11 @@ Route.init(
         },
         difficulty: {
             type: DataTypes.STRING,
-            allowNull: true,
+            allowNull: false,
+        },
+        thumbnail: {
+            type: DataTypes.STRING,
+            allowNull: false,
         },
     },
     {
@@ -53,17 +61,26 @@ const insertRoute = async (
     user_id: number,
     dir_id: string,
     difficulty: string,
+    thumbnail: string,
     route_id?: number
 ) => {
     try {
+        const where: ({ id: number } | { dir_id: string })[] = [{ dir_id }];
+        if (route_id) {
+            where.push({ id: route_id });
+        }
         const route = await Route.findOrCreate({
             where: {
-                [Op.or]: [{ id: route_id }, { dir_id }],
+                [Op.or]: where,
             },
-            defaults: { name, gym_id, user_id, dir_id, difficulty },
+            defaults: { name, gym_id, user_id, dir_id, difficulty, thumbnail },
         });
         if (!route[1]) {
-            return route[0].update({ id: route[0].id, name, gym_id, user_id, dir_id, difficulty });
+            // delete old thumbnail from azure
+            /* if (route[0].thumbnail !== thumbnail) {
+                await deleteFile(AZURE_ROUTE_IMAGES, route[0].thumbnail);
+            } */
+            return route[0].update({ id: route[0].id, name, gym_id, user_id, dir_id, difficulty, thumbnail });
         }
 
         return route[0];
@@ -75,7 +92,7 @@ const insertRoute = async (
 
 const routeInfoParams = () => {
     return {
-        attributes: ["id", "name", "gym_id", "dir_id", "difficulty"],
+        attributes: ["id", "name", "gym_id", "dir_id", "difficulty", "thumbnail"],
         include: [
             {
                 model: User,

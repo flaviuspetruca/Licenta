@@ -7,11 +7,14 @@ import { RouteCard } from "../Routes/RouteCard";
 import { useAlert, AlertType } from "../UI/AlertProvider";
 import LoadingWrapper from "../UI/LoadingWrapper";
 import { GymModal } from "./GymModal";
+import Pagination from "../UI/Pagination";
+import Map from "../Maps/Map";
 
 const Gym = () => {
     const [gym, setGym] = useState<GymQueryData | null>(null);
     const [refresh, setRefresh] = useState(false);
     const [loading, setLoading] = useState(true);
+    const imageRef = useRef<HTMLImageElement>(null);
     const { id } = useParams();
     const { showAlert } = useAlert();
     const ref = useRef<{ openModal: () => void }>();
@@ -38,14 +41,17 @@ const Gym = () => {
         async function getGym() {
             setLoading(true);
             const response = await fetchFn(`${BACKEND_ENDPOINT}/gym/${id}`, buildHttpHeaders());
-            const data = await response.json();
             setLoading(false);
             if (!response.ok) {
                 setGym(null);
                 showAlert({ title: "Error", description: "Failed to retrieve gym data", type: AlertType.ERROR });
                 return;
             }
-            setGym(data);
+            const data = await response.formData();
+            const gym = JSON.parse(data.get("json_data") as string);
+            const thumbnail = data.get("thumbnail") as Blob;
+            setGym(gym);
+            imageRef.current!.src = URL.createObjectURL(thumbnail);
         }
         getGym();
     }, [id, refresh, showAlert]);
@@ -118,11 +124,9 @@ const Gym = () => {
             <LoadingWrapper isLoading={loading} text={gym?.name}>
                 <div className="flex flex-col justify-center items-center w-full">
                     <div className="hero bg-base-200 max-w-128">
-                        <div className="hero-content flex-col lg:flex-row">
-                            <img src="/outputs/gym.jpg" alt={`${gym?.name} climbing gym`} className="w-96"></img>
-                            <div>
-                                <h1 className="text-5xl font-bold">{gym?.location}</h1>
-                            </div>
+                        <div className="hero-content flex-col items-start justify-between lg:flex-row w-full">
+                            <img ref={imageRef} alt={`${gym?.name} climbing gym`} className="lg:max-w-114"></img>
+
                             {gym?.isAdmin && (
                                 <Link to={`/route-creator/${gym?.id}`} className="btn btn-primary">
                                     Add route
@@ -131,11 +135,24 @@ const Gym = () => {
                         </div>
                     </div>
                     {gym?.isAdmin && <UsersSection />}
+                    {gym?.location && (
+                        <Map
+                            lat={Number(gym?.location.split(",")[0])}
+                            lng={Number(gym?.location.split(",")[1])}
+                            height="400px"
+                            width="70rem"
+                            popupText={gym?.name}
+                        ></Map>
+                    )}
                 </div>
-                <section>
-                    <main className="mt-10 flex flex-wrap items-center justify-center gap-x-6">
+                <section className="mt-10 w-full">
+                    <main className="flex flex-wrap items-center justify-center gap-x-6">
                         {gym?.routes && gym.routes.length ? (
-                            gym.routes.map((route) => <RouteCard route={route} />)
+                            <Pagination>
+                                {gym.routes.map((route) => (
+                                    <RouteCard route={route} />
+                                ))}
+                            </Pagination>
                         ) : (
                             <p>Gym does not have any routes</p>
                         )}

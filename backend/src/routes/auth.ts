@@ -28,10 +28,11 @@ router.get("/verify-admin-gym/:gym_id", verifyGymAdminMiddleWear, async (req: Re
     res.status(STATUS_CODES.OK).send("User is an admin of this gym");
 });
 
+// TO DO throw error message if user or email already exists
 router.post("/register", async (req: Request, res: Response) => {
-    const { username, password } = req.body;
+    const { username, password, email, firstname, surname } = req.body;
     req.context.lgr.debug(`Registering user ${username}`);
-    const user = await insertUser(username, await hashPassword(password));
+    const user = await insertUser(username, await hashPassword(password), email, firstname, surname);
     if (!user) {
         req.context.lgr.error("Failed to register user");
         res.status(STATUS_CODES.CONFLICT).send("Failed to register user");

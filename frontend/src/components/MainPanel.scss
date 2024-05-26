@@ -15,7 +15,11 @@ body,
 }
 
 .wrapper {
-    @apply p-16 h-full w-full;
+    @apply flex flex-col justify-start items-center p-8 lg:p-16 h-5/6 w-full;
+}
+
+.wrapper-content {
+    @apply h-full w-full items-start sm:max-w-114 lg:max-w-144;
 }
 
 .main-container {
@@ -27,11 +31,11 @@ body,
 }
 
 .green-btn {
-    @apply focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800;
+    @apply focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-700 border-0;
 }
 
 .purple-btn {
-    @apply focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900;
+    @apply focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900;
 }
 
 .reset-btn {
@@ -46,10 +50,22 @@ body,
     @apply focus:outline-none text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-xl text-sm px-4 py-2.5 mb-2 dark:bg-blue-400 dark:hover:bg-blue-500 dark:focus:ring-blue-900;
 }
 
+.input-container {
+    @apply flex flex-col p-2 gap-2 rounded-xl mt-3;
+}
+
+.input-container label {
+    @apply px-1 font-bold;
+}
+
 .input-class {
     @apply block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6;
 }
 
 .input-label {
-    @apply text-sm font-medium leading-6 text-gray-900;
+    @apply w-fit text-lg rounded-lg font-semibold leading-6 text-gray-900;
+}
+
+.form-input-container {
+    @apply mt-2;
 }

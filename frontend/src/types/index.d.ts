@@ -46,6 +46,9 @@ export type UserTypeDB = {
     username: string;
     email: string;
     password: string;
+    role: string;
+    firstname: string;
+    surname: string;
 };
 
 export type GymTypeDB = {

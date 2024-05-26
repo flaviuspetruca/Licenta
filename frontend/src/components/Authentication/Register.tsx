@@ -11,6 +11,15 @@ export default function Register() {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData.entries());
+        if (data["password"] !== data["password_confirmation"]) {
+            showAlert({
+                title: "Error",
+                description: "Passwords do not match",
+                type: AlertType.ERROR,
+            });
+            return;
+        }
+        delete data["password_confirmation"];
         const response = await fetchFn(`${BACKEND_ENDPOINT}/register`, {
             method: "POST",
             headers: {
@@ -25,7 +34,7 @@ export default function Register() {
         } else if (response.status === 409) {
             showAlert({
                 title: "Error",
-                description: "There already is a user with this username",
+                description: "Email or username already in use. Please try again with different credentials",
                 type: AlertType.ERROR,
             });
         }
@@ -41,31 +50,31 @@ export default function Register() {
         <>
             <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                    <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                    <h2 className="mt-10 text-center text-3xl font-bold leading-9 tracking-tight text-gray-900">
                         Register for an account
                     </h2>
                 </div>
 
-                <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-                    <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className="mt-12 sm:mx-auto sm:w-full sm:max-w-sm">
+                    <form className="space-y-9" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="name" className="input-label">
-                                Name
-                            </label>
-                            <div className="mt-2">
+                            <div className="form-input-container">
+                                <label htmlFor="firstname" className="input-label">
+                                    First Name
+                                </label>
                                 <input
                                     id="name"
-                                    name="name"
+                                    name="firstname"
                                     type="text"
-                                    autoComplete="name"
+                                    autoComplete="firstname"
                                     required
                                     className="input-class"
                                 />
                             </div>
-                            <label htmlFor="surname" className="input-label">
-                                Surname
-                            </label>
-                            <div className="mt-2">
+                            <div className="form-input-container">
+                                <label htmlFor="surname" className="input-label">
+                                    Surname
+                                </label>
                                 <input
                                     id="surname"
                                     name="surname"
@@ -75,10 +84,10 @@ export default function Register() {
                                     className="input-class"
                                 />
                             </div>
-                            <label htmlFor="username" className="input-label">
-                                Username
-                            </label>
-                            <div className="mt-2">
+                            <div className="form-input-container">
+                                <label htmlFor="username" className="input-label">
+                                    Username
+                                </label>
                                 <input
                                     id="username"
                                     name="username"
@@ -88,10 +97,10 @@ export default function Register() {
                                     className="input-class"
                                 />
                             </div>
-                            <label htmlFor="email" className="input-label">
-                                Email
-                            </label>
-                            <div className="mt-2">
+                            <div className="form-input-container">
+                                <label htmlFor="email" className="input-label">
+                                    Email
+                                </label>
                                 <input
                                     id="email"
                                     name="email"
@@ -103,11 +112,11 @@ export default function Register() {
                             </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="password" className="input-label">
-                                Password
-                            </label>
-                            <div className="mt-2 mb-2">
+                        <div className="">
+                            <div className="form-input-container">
+                                <label htmlFor="password" className="input-label">
+                                    Password
+                                </label>
                                 <input
                                     id="password"
                                     name="password"
@@ -117,10 +126,10 @@ export default function Register() {
                                     className="input-class"
                                 />
                             </div>
-                            <label htmlFor="password_confirmation" className="input-label">
-                                Confirm Password
-                            </label>
-                            <div className="mt-2">
+                            <div className="form-input-container">
+                                <label htmlFor="password_confirmation" className="input-label">
+                                    Confirm Password
+                                </label>
                                 <input
                                     id="password_confirmation"
                                     name="password_confirmation"
@@ -135,7 +144,7 @@ export default function Register() {
                         <div>
                             <button
                                 type="submit"
-                                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-md font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                             >
                                 Submit
                             </button>
@@ -143,7 +152,10 @@ export default function Register() {
                     </form>
 
                     <p className="mt-10 text-center text-sm text-gray-500">
-                        <Link to="/login" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+                        <Link
+                            to="/login"
+                            className="text-lg font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+                        >
                             Already have an account?
                         </Link>
                     </p>

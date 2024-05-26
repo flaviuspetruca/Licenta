@@ -7,26 +7,26 @@ import { Member } from "../utils/utils";
 import { buildHttpHeaders, fetchFn } from "../utils/http";
 import debugRouteJson from "../assets/debug_route.json";
 import TableRouteControls from "./TableRouteControls/TableRouteControls";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAlert, AlertType } from "./UI/AlertProvider";
 import { AudioData } from "./MainPanel";
 import { difficultyLevels } from "./TableRouteActions/TableRouteActions";
+import { RouteTotalData } from "./Routes/Route";
 
 export enum PositionSetterBarState {
     HIDDEN = "HIDDEN",
     OPEN = "OPEN",
-    CLOSED = "CLOSED",
     ALLOW_EDIT = "ALLOW_EDIT",
 }
 
 export enum PositionSetterBarAction {
     SET_POSITIONS = "setPositions",
+    SET_SELECTED_MEMBER = "setSelectedMember",
     POSITION_SAVE = "positionSave",
     EDIT = "edit",
     PREVIOUS = "previous",
     NEXT = "next",
-    CLOSE = "close",
-    SET_SELECTED_MEMBER = "setSelectedMember",
+    RESET = "reset",
 }
 
 type Props = {
@@ -38,6 +38,7 @@ type Props = {
     hasAudioFiles: boolean;
     routeHighlight: { positionIndex: number; member: Member } | undefined;
     setRouteHighlight: React.Dispatch<React.SetStateAction<{ positionIndex: number; member: Member } | undefined>>;
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const TableRoute = forwardRef((props: Props, ref) => {
@@ -50,10 +51,13 @@ const TableRoute = forwardRef((props: Props, ref) => {
         hasAudioFiles,
         routeHighlight,
         setRouteHighlight,
+        setLoading,
     }: Props = props;
     const { id } = useParams();
     const { showAlert } = useAlert();
     const params = useSearchParams();
+    const location = useLocation();
+    const navigate = useNavigate();
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
     const [isSettingPositions, setIsSettingPositions] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -61,8 +65,10 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const [positions, setPositions] = useState<Position[]>([]);
     const [processing, setProccessing] = useState(false);
     const [generated, setGenerated] = useState(false);
+    const [isRouteSaved, setIsRouteSaved] = useState(false);
     const [routeName, setRouteName] = useState<string>("");
     const [difficulty, setDifficulty] = useState<string>(difficultyLevels[0]);
+    const [picture, setPicture] = useState<File | null>(null);
 
     const _emptyMatrix = useMemo(() => {
         const initialMatrix = [];
@@ -113,12 +119,17 @@ const TableRoute = forwardRef((props: Props, ref) => {
         return _getMembersWithSetCoordinates(currentPosition);
     }, [currentPosition]);
 
-    // Function to update the current position
     const updateCurrentPosition = (member: Member, coordinates: Coordinates) => {
         setCurrentPosition((position) => ({
             ...position,
             [member]: coordinates,
         }));
+    };
+
+    const handleSetRetrievedPositions = (positions: Position[]) => {
+        setPositions(positions);
+        setCurrentPosition(positions[0]);
+        setCurrentPositionIndex(0);
     };
 
     const handleOnClick = (e: React.MouseEvent<HTMLTableCellElement>) => {
@@ -163,7 +174,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
         const parsedData: HoldEntity = JSON.parse(data);
         if (!parsedData) e.preventDefault();
 
-        console.log(e);
         const row = (e.currentTarget.parentElement as HTMLTableRowElement)?.rowIndex;
         const col = e.currentTarget.cellIndex;
 
@@ -198,16 +208,22 @@ const TableRoute = forwardRef((props: Props, ref) => {
         generated ? handleRouteSave() : handleRouteSubmit();
     };
 
+    // TODO: handle input
     const handleRouteSave = async () => {
-        const body = JSON.stringify({
-            route_id: Number(params[0].get("route_id")),
-            routeName,
-            dir_id: audioData?.path,
-            difficulty,
-        });
-        const response = await fetchFn(`${BACKEND_ENDPOINT}/save-route/${id}`, buildHttpHeaders("POST", body));
+        const body = new FormData();
+        if (params[0].get("route_id")) {
+            body.append("route_id", String(params[0].get("route_id"))); // possibly null when route is saved for the first time
+        }
+        body.append("routeName", routeName);
+        body.append("dir_id", audioData?.path || "");
+        body.append("difficulty", difficulty);
+        body.append("file", picture as File, picture?.name);
+        const response = await fetchFn(`${BACKEND_ENDPOINT}/save-route/${id}`, buildHttpHeaders("POST", body, ""));
         if (response.ok) {
             showAlert({ title: "Success", description: "Route saved successfully", type: AlertType.SUCCESS });
+            setIsRouteSaved(true);
+            const data = await response.json();
+            navigate(`/route-creator/${id}?route_id=${data.id}`);
         } else {
             showAlert({ title: "Error", description: "Failed to save route", type: AlertType.ERROR });
         }
@@ -218,10 +234,11 @@ const TableRoute = forwardRef((props: Props, ref) => {
             positions,
             matrix,
         });
+
         setProccessing(true);
         const response = await fetchFn(`${BACKEND_ENDPOINT}/route/${id}`, buildHttpHeaders("POST", body));
+        setProccessing(false);
         if (response.ok) {
-            setProccessing(false);
             const data = await response.formData();
             const jsonData: AudioData = JSON.parse(data.get("json_data") as string);
 
@@ -233,11 +250,9 @@ const TableRoute = forwardRef((props: Props, ref) => {
             const blobs = data.getAll("audio_blob") as File[];
             jsonData.blobs = blobs;
             setAudioData({ ...jsonData });
-            setIsEditing(false);
             setGenerated(true);
         } else {
             showAlert({ title: "Error", description: "Failed to generate route", type: AlertType.ERROR });
-            setProccessing(false);
             setAudioData(undefined);
         }
     };
@@ -250,8 +265,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
         setIsSettingPositions(true);
     };
 
-    const handleClose = () => {};
-
     const handleSavePositions = () => {
         if (usedMembers.length !== 4) {
             showAlert({ title: "Error", description: "All members must be set", type: AlertType.ERROR });
@@ -259,7 +272,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
         }
 
         if (currentPositionIndex < positions.length) {
-            // replacing the current position
             positions[currentPositionIndex] = currentPosition;
             setCurrentPosition(positions[currentPositionIndex]);
         } else {
@@ -285,13 +297,6 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const handleSetSelectedMember = (member: Member) => {
         setSelectedMember(member);
     };
-
-    const handleEdit = useCallback(() => {
-        setIsSettingPositions(true);
-        setAudioData(undefined);
-        setRouteHighlight(undefined);
-        setIsEditing(!isEditing);
-    }, [setAudioData, setRouteHighlight]);
 
     const handleNext = () => {
         setSelectedMember(undefined);
@@ -321,9 +326,26 @@ const TableRoute = forwardRef((props: Props, ref) => {
         setDifficulty(difficulty);
     };
 
+    const handlePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files) {
+            if (files[0].size > 1048576) {
+                showAlert({ title: "Error", description: "File size must be less than 1MB", type: AlertType.ERROR });
+                e.target.value = "";
+                return;
+            }
+            if (files[0].type.split("/")[0] !== "image") {
+                showAlert({ title: "Error", description: "File must be an image", type: AlertType.ERROR });
+                e.target.value = "";
+                return;
+            }
+            setPicture(files[0]);
+        }
+    };
+
     const handlePositionsSetterBarAction = (action: PositionSetterBarAction, args: any) => {
         switch (action) {
-            case PositionSetterBarAction.CLOSE:
+            case PositionSetterBarAction.RESET:
                 resetSettingPositions();
                 break;
             case PositionSetterBarAction.SET_POSITIONS:
@@ -355,12 +377,20 @@ const TableRoute = forwardRef((props: Props, ref) => {
         if (isSettingPositions || isEditing) {
             state = PositionSetterBarState.OPEN;
         }
-
-        if (hasAudioFiles && !isSettingPositions && !isEditing) {
+        if (generated) {
             state = PositionSetterBarState.ALLOW_EDIT;
         }
         return state;
-    }, [isSettingPositions, isEditing, hasAudioFiles]);
+    }, [isSettingPositions, isEditing, generated]);
+
+    const handleEdit = useCallback(() => {
+        setIsSettingPositions(true);
+        setAudioData(undefined);
+        setRouteHighlight(undefined);
+        setIsEditing(true);
+        setGenerated(false);
+        setIsRouteSaved(false);
+    }, [setAudioData, setRouteHighlight]);
 
     const previousPosition = useMemo(() => {
         if (currentPositionIndex === 0) {
@@ -376,25 +406,26 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
     const resetSettingPositions = useCallback(() => {
         setRouteHighlight(undefined);
-        setAudioData(undefined);
         setPositions([]);
         resetCurrentPosition();
-        setIsSettingPositions(false);
         setSelectedMember(undefined);
-        setGenerated(false);
-    }, [resetCurrentPosition, setAudioData, setRouteHighlight]);
+    }, [resetCurrentPosition, setRouteHighlight]);
 
     const resetPanel = useCallback(() => {
         resetSettingPositions();
+        setAudioData(undefined);
         setMatrix([..._emptyMatrix]);
-    }, [_emptyMatrix, resetSettingPositions]);
+        setIsSettingPositions(false);
+        setGenerated(false);
+    }, [_emptyMatrix, resetSettingPositions, setAudioData]);
 
     useImperativeHandle(ref, () => ({
         resetPanel,
         setMatrix,
-        setPositions,
+        handleSetRetrievedPositions,
         setRouteName,
         setDifficulty,
+        handleEdit,
     }));
 
     useEffect(() => {
@@ -409,10 +440,32 @@ const TableRoute = forwardRef((props: Props, ref) => {
     }, [generated]);
 
     useEffect(() => {
-        if (params[0].get("route_id")) {
-            //handleEdit();
+        async function getRoute() {
+            const queryParams = new URLSearchParams(location.search);
+            const route_id = queryParams.get("route_id");
+
+            if (!route_id) return;
+            const response = await fetchFn(`${BACKEND_ENDPOINT}/route/${route_id}`, buildHttpHeaders());
+
+            if (!response.ok) return;
+
+            const data = await response.formData();
+            const routeData: RouteTotalData = JSON.parse(data.get("json_data") as string);
+            const blobs = data.getAll("audio_blob") as File[];
+            if (!routeData.data || !routeData.path || !blobs.length) {
+                showAlert({ title: "Error", description: "Failed to retrive route", type: AlertType.ERROR });
+                return;
+            }
+            handleEdit();
+            setMatrix([...routeData.matrix]);
+            handleSetRetrievedPositions([...routeData.positions]);
+            setRouteName(routeData.route.name);
+            setDifficulty(routeData.route.difficulty);
+            setLoading(false);
         }
-    }, [params, handleEdit]);
+
+        getRoute();
+    }, [showAlert, location, setLoading]);
 
     return (
         <div className="table-container rounded-4xl bg-route-setting-table">
@@ -438,6 +491,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
                 routeName={routeName}
                 openModal={openModal}
                 generated={generated}
+                isRouteSaved={isRouteSaved}
                 handlePositionsSetterBarAction={handlePositionsSetterBarAction}
                 handleRouteSubmit={handleActionSubmit}
                 handleSetDebugRoute={handleSetDebugRoute}
@@ -445,6 +499,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
                 handleDragOver={handleDragOver}
                 handleRouteNameChange={handleRouteNameChange}
                 handleDifficultyChange={handleDifficultyChange}
+                handlePictureChange={handlePictureChange}
             />
         </div>
     );

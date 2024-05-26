@@ -17,6 +17,8 @@ import Gym from "./components/Gyms/Gym";
 import { AlertProvider } from "./components/UI/AlertProvider";
 import MainPanel from "./components/MainPanel";
 import { UserTypeDB } from "./types";
+import GymRegister from "./components/Gyms/GymRegister";
+import AdminPanel from "./components/AdminPanel/AdminPanel";
 
 const NavbarWrapper = () => {
     const [user, setUser] = useState<Omit<UserTypeDB, "password"> | null>(null);
@@ -62,7 +64,9 @@ const router = createBrowserRouter([
             { path: "/routes", element: <Routes /> },
             { path: "/gym-admin", element: <GymAdministrator /> },
             { path: "/gym/:id", element: <Gym /> },
+            { path: "/gym-register", element: <GymRegister /> },
             { path: "/route/:id", element: <Route /> },
+            { path: "/admin", element: <AdminPanel /> },
         ],
         errorElement: <NotFound />,
     },

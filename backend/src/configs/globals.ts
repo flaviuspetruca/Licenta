@@ -20,3 +20,5 @@ export const AZURE_ACCOUNT = process.env.AZURE_ACCOUNT || "";
 export const AZURE_KEY = process.env.AZURE_KEY || "";
 export const AZURE_TMP = process.env.AZURE_CONTAINER_TMP || "";
 export const AZURE_ASSETS = process.env.AZURE_CONTAINER_ASSETS || "";
+export const AZURE_GYM_IMAGES = process.env.AZURE_CONTAINER_GYM_IMAGES || "";
+export const AZURE_ROUTE_IMAGES = process.env.AZURE_CONTAINER_ROUTE_IMAGES || "";

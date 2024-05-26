@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BACKEND_ENDPOINT } from "../../configs";
 import { Member } from "../../utils/utils";
@@ -16,6 +16,7 @@ export type RouteQueryData = {
     dir_id: string;
     gym_id: number;
     difficulty: string;
+    thumbnail: Blob;
     gym: {
         name: string;
         location: string;
@@ -29,6 +30,7 @@ export type RouteTotalData = {
     route: RouteQueryData;
     matrix: Matrix;
     positions: Position[];
+    thumbnail: Blob;
     admin: boolean;
 } & AudioData;
 
@@ -39,8 +41,9 @@ const Route = () => {
     const [routeHighlight, setRouteHighlight] = useState<{ positionIndex: number; member: Member } | undefined>(
         undefined
     );
-    const { showAlert } = useAlert();
     const [data, setData] = useState<RouteTotalData>();
+    const imageRef = useRef<HTMLImageElement>(null);
+    const { showAlert } = useAlert();
     const { id } = useParams();
 
     useEffect(() => {
@@ -74,6 +77,8 @@ const Route = () => {
                 return;
             }
             routeData.blobs = data.getAll("audio_blob") as File[];
+            routeData.thumbnail = data.get("thumbnail") as Blob;
+            imageRef.current!.src = URL.createObjectURL(routeData.thumbnail);
             setData(routeData);
         }
         getRoute();
@@ -83,11 +88,7 @@ const Route = () => {
             <section className="flex items-center justify-center w-full">
                 <div className="hero bg-base-200 max-w-128">
                     <div className="hero-content flex-col lg:flex-row">
-                        <img
-                            src="/outputs/route.jpg"
-                            alt={`${data?.route.gym.name} climbing gym`}
-                            className="w-96"
-                        ></img>
+                        <img ref={imageRef} alt={`${data?.route.gym.name} climbing gym`} className="w-96"></img>
                         <div>
                             <h1 className="text-5xl font-bold">{data?.route.gym.name}</h1>
                         </div>
@@ -103,7 +104,7 @@ const Route = () => {
                 </div>
             </section>
             <section className="flex items-center justify-center w-full">
-                <div className="w-fit bg-route-setting-table p-6 rounded-2xl">
+                <div className="bg-route-setting-table p-6 rounded-2xl w-fit">
                     <RouteSettingTable
                         matrix={data?.matrix}
                         currentPosition={currentPosition}

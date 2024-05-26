@@ -8,17 +8,17 @@ import {
 import lgr from "../utils/logger";
 import { __dirname } from "..";
 
-import { AZURE_ACCOUNT, AZURE_KEY, AZURE_TMP } from "../configs/globals";
+import { AZURE_ACCOUNT, AZURE_KEY } from "../configs/globals";
 
 const sharedKeyCredential = new StorageSharedKeyCredential(AZURE_ACCOUNT, AZURE_KEY);
 const blobServiceClient = new BlobServiceClient(`https://${AZURE_ACCOUNT}.blob.core.windows.net`, sharedKeyCredential);
 
-export const uploadFile = async (zipBuffer: Buffer, fileName: string) => {
-    const containerClient = blobServiceClient.getContainerClient(AZURE_TMP);
+export const uploadFile = async (container: string, buffer: Buffer, fileName: string) => {
+    const containerClient = blobServiceClient.getContainerClient(container);
     const blockBlobClient = containerClient.getBlockBlobClient(fileName);
 
     try {
-        await blockBlobClient.uploadData(zipBuffer);
+        await blockBlobClient.uploadData(buffer);
         return true;
     } catch (error) {
         lgr.ierror(`Error uploading file "${fileName}":`, error);
@@ -68,10 +68,10 @@ export const moveDir = async (sourceContainer: string, destContainer: string, di
     }
 };
 
-export const downloadFile = async (containerName: string, fileName: string): Promise<Buffer> => {
+export const downloadFile = async (containerName: string, blobName: string): Promise<Buffer> => {
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
-    const blobClient = containerClient.getBlockBlobClient(fileName);
+    const blobClient = containerClient.getBlockBlobClient(blobName);
 
     const downloadResp = await blobClient.download();
     if (!downloadResp.readableStreamBody) {
@@ -84,4 +84,11 @@ export const downloadFile = async (containerName: string, fileName: string): Pro
     }
 
     return Buffer.concat(chunks);
+};
+
+export const deleteFile = async (containerName: string, blobName: string) => {
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blobClient = containerClient.getBlockBlobClient(blobName);
+    const resp = await blobClient.delete();
+    return resp._response.status === 200;
 };
