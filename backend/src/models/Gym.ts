@@ -1,5 +1,5 @@
 import sequelize from "../db/database";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Op } from "sequelize";
 import lgr from "../utils/logger";
 import User from "./User";
 import Route from "./Route";
@@ -50,8 +50,8 @@ const insertGym = async (name: string, location: string, thumbnail: string) => {
 };
 
 // TODO: nested data removal
-const findGym = async ({ id, admin_id }: { id?: number; admin_id?: number }) => {
-    const where = admin_id ? { "$users.data.role$": "ADMIN", "$users.id$": admin_id } : {};
+const findGym = async ({ id, user_id }: { id?: number; user_id?: number }) => {
+    const where = user_id ? { "$users.data.role$": { [Op.in]: ["ADMIN", "EDITOR"] }, "$users.id$": user_id } : {};
     const gym = await Gym.findOne({
         where: { id, ...where },
         attributes: [
@@ -94,7 +94,7 @@ const findGym = async ({ id, admin_id }: { id?: number; admin_id?: number }) => 
 };
 
 const findGyms = async (user_id?: number) => {
-    const where = user_id ? { "$users.data.role$": "ADMIN", "$users.id$": user_id } : {};
+    const where = user_id ? { "$users.data.role$": { [Op.in]: ["ADMIN", "EDITOR"] }, "$users.id$": user_id } : {};
     const gyms = await Gym.findAll({
         attributes: [
             "id",

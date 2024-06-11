@@ -7,7 +7,7 @@ import LoadingWrapper from "../UI/LoadingWrapper";
 import { useAlert, AlertType } from "../UI/AlertProvider";
 import Pagination from "../UI/Pagination";
 
-export type UserGymRole = "ADMIN" | "EDITOR" | "VIEWER";
+export type UserGymRole = "ADMIN" | "EDITOR";
 
 export type GymQueryData = {
     id: number;
@@ -17,7 +17,8 @@ export type GymQueryData = {
     users: { id: number; username: string; data: { role: UserGymRole } }[];
     nr_routes?: number;
     routes?: RouteQueryData[]; //TODO: Omit the extra data
-    isAdmin?: boolean;
+    userRole?: UserGymRole;
+    status?: string;
 };
 
 const Gyms = () => {
@@ -50,7 +51,7 @@ const Gyms = () => {
     const renderContent = gyms.length ? (
         <Pagination>
             {gyms.map((gym) => (
-                <GymCard gym={gym} />
+                <GymCard gym={gym} type="gym" />
             ))}
         </Pagination>
     ) : (

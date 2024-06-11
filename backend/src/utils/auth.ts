@@ -4,7 +4,7 @@ import { Request, WHITELISTED_ROUTES } from "./http";
 import { NextFunction, Response } from "express";
 
 const checkRoute = (req: any) => {
-    const root = req.url.split("/")[1];
+    const root = req.url.split("/")[1].split("?")[0];
     return WHITELISTED_ROUTES.find((route) => route === root);
 };
 

@@ -1,4 +1,6 @@
 export const PORT = 3001;
+export const BACKEND = `http://localhost:${PORT}`;
+export const FRONT_END = "http://localhost:3000";
 export const AUDIO_BACKEND = "http://localhost:8443";
 
 export const HOLDS_PATH = "src/configs/holds.json";
@@ -7,7 +9,7 @@ export const IMAGE_HOLDS_PATH = "assets/holds";
 export const AUDIO_PATH = "assets/audio";
 export const TMP_AUDIO_PATH = "assets/tmp";
 export const NEXT_POSITION_AUDIO = "next_position.mp3";
-export const END_AUDIO = "end_of_track.mp3";
+export const END_AUDIO = "finish.mp3";
 
 export const CELL_EDGE_SIZE = 30; // DISTANCE BETWEEN CENTERS OF TWO CELLS
 export const CLOSE_LIMIT_DISTANCE = Math.sqrt(2 * Math.pow(CELL_EDGE_SIZE, 2));

@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
-import LoadingWrapper from "../UI/LoadingWrapper";
-import { BACKEND_ENDPOINT } from "../../configs";
-import { buildHttpHeaders } from "../../utils/http";
-import { AlertType, useAlert } from "../UI/AlertProvider";
+import { LatLngExpression } from "leaflet";
 import { useNavigate } from "react-router-dom";
 import Map from "../Maps/Map";
-import { LatLngExpression } from "leaflet";
 import FileChooser from "../FileChooser";
+import LoadingWrapper from "../UI/LoadingWrapper";
+import { AlertType, useAlert } from "../UI/AlertProvider";
+import { BACKEND_ENDPOINT } from "../../configs";
+import { buildHttpHeaders } from "../../utils/http";
 
 const GymRegister = () => {
     const [loading, setLoading] = useState(false);
@@ -40,16 +40,28 @@ const GymRegister = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+
+        if (!name || !mapRef.current?.markerPosition || !picture) {
+            showAlert({ title: "Error", description: "All fields are required", type: AlertType.ERROR });
+            setLoading(false);
+            return;
+        }
+
         const data = new FormData();
         data.append("name", name);
-        data.append("location", mapRef.current?.markerPosition?.toString() || "");
+        data.append("location", mapRef.current.markerPosition.toString());
         data.append("file", picture as File, picture?.name);
-        console.log(mapRef.current?.markerPosition?.toString());
-        const response = await fetch(`${BACKEND_ENDPOINT}/gym`, buildHttpHeaders("POST", data, ""));
+
+        const response = await fetch(`${BACKEND_ENDPOINT}/gym-submission`, buildHttpHeaders("POST", data, ""));
         if (response.ok) {
-            showAlert({ title: "Success", description: "Gym registered", type: AlertType.SUCCESS });
-            const data = await response.json();
-            navigate(`/gym/${data.id}`);
+            showAlert({
+                title: "Success",
+                description: "Gym registration submitted. Your submission will be validated soon.",
+                type: AlertType.SUCCESS,
+            });
+            setTimeout(() => {
+                navigate("/routes");
+            }, 5000);
         } else {
             showAlert({ title: "Error", description: "Failed to register gym", type: AlertType.ERROR });
         }
@@ -78,7 +90,7 @@ const GymRegister = () => {
                         <label className="input-label" htmlFor="gym-location">
                             Set Location
                         </label>
-                        <Map ref={mapRef}></Map>
+                        <Map ref={mapRef} changable></Map>
                     </div>
                     <FileChooser
                         label="Choose gym picture"

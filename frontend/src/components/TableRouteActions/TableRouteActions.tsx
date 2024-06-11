@@ -19,7 +19,7 @@ type TableRouteActionsProps = {
     isRouteSaved: boolean;
 };
 
-export const difficultyLevels = ["1c", "2a", "2b", "2c", "3a", "3b", "3c", "4a", "4b", "4c", "5a", "5b", "5c"];
+export const difficultyLevels = ["4", "4+", "5-", "5", "5+"];
 
 const TableRouteActions = ({
     handleRouteNameChange,

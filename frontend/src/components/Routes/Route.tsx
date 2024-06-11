@@ -9,6 +9,16 @@ import Player from "../Player/Player";
 import LoadingWrapper from "../UI/LoadingWrapper";
 import { AlertType, useAlert } from "../UI/AlertProvider";
 import { AudioData } from "../MainPanel";
+import { MapPinIcon } from "@heroicons/react/24/outline";
+
+import { FacebookShareButton, WhatsappShareButton, FacebookIcon, WhatsappIcon } from "react-share";
+import { UserGymRole } from "../Gyms/Gyms";
+
+type ShareButtonsProps = {
+    url: string;
+    title: string;
+    description?: string;
+};
 
 export type RouteQueryData = {
     id: number;
@@ -31,7 +41,7 @@ export type RouteTotalData = {
     matrix: Matrix;
     positions: Position[];
     thumbnail: Blob;
-    admin: boolean;
+    userRole: UserGymRole;
 } & AudioData;
 
 const Route = () => {
@@ -45,6 +55,23 @@ const Route = () => {
     const imageRef = useRef<HTMLImageElement>(null);
     const { showAlert } = useAlert();
     const { id } = useParams();
+
+    const ShareButtons = ({ url, title }: ShareButtonsProps) => {
+        return (
+            <div className="pt-3">
+                <h3>Share this page:</h3>
+                <div className="flex pt-2 space-x-2">
+                    <FacebookShareButton url={url} title={title}>
+                        <FacebookIcon size={32} round />
+                    </FacebookShareButton>
+
+                    <WhatsappShareButton url={url} title={title}>
+                        <WhatsappIcon size={32} round />
+                    </WhatsappShareButton>
+                </div>
+            </div>
+        );
+    };
 
     useEffect(() => {
         if (routeHighlight) {
@@ -87,19 +114,29 @@ const Route = () => {
         <LoadingWrapper isLoading={loading} text={data?.route.name}>
             <section className="flex items-center justify-center w-full">
                 <div className="hero bg-base-200 max-w-128">
-                    <div className="hero-content flex-col lg:flex-row">
-                        <img ref={imageRef} alt={`${data?.route.gym.name} climbing gym`} className="w-96"></img>
+                    <div
+                        className={`hero-content flex-col ${data?.userRole ? "items-start justify-between" : "items-center"} lg:flex-row w-full`}
+                    >
+                        <img
+                            ref={imageRef}
+                            alt={`${data?.route.gym.name} climbing gym`}
+                            className="min-w-96 lg:max-w-114"
+                        ></img>
                         <div>
-                            <h1 className="text-5xl font-bold">{data?.route.gym.name}</h1>
-                        </div>
-                        {data?.admin && (
-                            <Link
-                                to={`/route-creator/${data?.route.gym_id}?route_id=${data.route.id}`}
-                                className="btn btn-primary"
-                            >
-                                Edit route
+                            <Link to={`/gym/${data?.route.gym_id}`} className="flex items-center mb-8">
+                                <MapPinIcon className="w-10 h-10"></MapPinIcon>
+                                <span className="text-indigo-700 font-medium">{data?.route.gym.name}</span>
                             </Link>
-                        )}
+                            {data?.userRole && (
+                                <Link
+                                    to={`/route-creator/${data?.route.gym_id}?route_id=${data.route.id}`}
+                                    className="btn btn-primary"
+                                >
+                                    Edit route
+                                </Link>
+                            )}
+                            <ShareButtons title={data?.route.name || ""} url={window.location.href} />
+                        </div>
                     </div>
                 </div>
             </section>

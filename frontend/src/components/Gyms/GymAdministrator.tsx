@@ -35,7 +35,7 @@ const GymAdministrator = () => {
     }, [showAlert]);
 
     const renderContent = gyms.length ? (
-        gyms.map((gym) => <GymCard key={"gym-" + gym.id} gym={gym} />)
+        gyms.map((gym) => <GymCard key={"gym-" + gym.id} gym={gym} type="gym" />)
     ) : (
         <section>
             <h2 className="text-2xl font-bold leading-7 mt-52 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
@@ -53,7 +53,7 @@ const GymAdministrator = () => {
     );
 
     return (
-        <LoadingWrapper isLoading={loading} text={"Admin"} contentStyle="gym-list">
+        <LoadingWrapper isLoading={loading} text={"Gym administator"} contentStyle="gym-list">
             {renderContent}
         </LoadingWrapper>
     );

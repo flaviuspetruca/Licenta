@@ -11,13 +11,15 @@ type Props = {
     transition: boolean;
 };
 
+const MERGED_AUDIO = "merged.mp3";
+
 const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
     const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
     const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
+    const [shouldPlay, setShouldPlay] = useState(false);
+    const [downloading, setDownloading] = useState(false);
     const { showAlert } = useAlert();
     const audioPlayer = useRef<HTMLAudioElement>(null);
-
-    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         const handleRouteHighlight = () => {
@@ -25,6 +27,10 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
                 positionIndex: currentPositionIndex,
                 member: audioData?.data[currentPositionIndex][currentAudioIndex].member as Member,
             });
+        };
+
+        const handleAudioEnd = () => {
+            handleAudioChange("next");
         };
 
         if (audioPlayer && audioPlayer.current && audioData && audioData.data.length > 0) {
@@ -36,8 +42,14 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
             }
             audioPlayer.current.src = URL.createObjectURL(blob as Blob);
             audioPlayer.current.load();
-            audioPlayer.current.pause();
+            if (shouldPlay) {
+                audioPlayer.current.play();
+            }
             handleRouteHighlight();
+
+            audioPlayer.current.removeEventListener("ended", handleAudioEnd);
+            audioPlayer.current.addEventListener("ended", handleAudioEnd);
+            audioPlayer.current.addEventListener("play", () => setShouldPlay(true));
         }
     }, [currentAudioIndex, currentPositionIndex, audioData, audioPlayer, setRouteHighlight, showAlert]);
 
@@ -49,6 +61,7 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
         const isLastPosition = currentPositionIndex === Object.keys(audioData.data).length - 1;
         const isFirstPosition = currentPositionIndex === 0;
 
+        setShouldPlay(true);
         if ((isNext && isAtEnd) || (!isNext && isAtStart)) {
             const newPositionIndex = isNext
                 ? isLastPosition
@@ -77,7 +90,7 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
         }
 
         setDownloading(true);
-        const audio = audioData.blobs.find((blob) => blob.name === "merged.mp3");
+        const audio = audioData.blobs.find((blob) => blob.name === MERGED_AUDIO);
         if (!audio) {
             showAlert({ title: "Error", description: "Failed to download audio", type: AlertType.ERROR });
             setDownloading(false);
@@ -89,7 +102,7 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
 
         const a = document.createElement("a");
         a.href = blobUrl;
-        a.download = "merged.mp3";
+        a.download = MERGED_AUDIO;
         a.click();
 
         URL.revokeObjectURL(blobUrl);
@@ -102,7 +115,6 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
             <audio
                 ref={audioPlayer}
                 controls
-                autoPlay
                 className="w-full mb-4"
                 style={{
                     border: "4px orange solid",

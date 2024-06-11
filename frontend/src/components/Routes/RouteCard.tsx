@@ -12,10 +12,16 @@ export const RouteCard = ({ route }: { route: RouteQueryData }) => {
         }
     }, [route.thumbnail]);
     return (
-        <section className="lg:flex mb-5 h-fit">
-            <div className="card-image" title={route.name}>
-                <img ref={imageRef} alt={`${route.name} climbing route`} className="w-full h-full"></img>
-            </div>
+        <section className="lg:flex mb-5">
+            <figure className="card-image">
+                <img
+                    ref={imageRef}
+                    alt={`${route.name} climbing route`}
+                    className="w-full h-full"
+                    aria-label={`${route.name} climbing route`}
+                ></img>
+                <figcaption className="sr-only">{route.name}</figcaption>
+            </figure>
             <div className="card-body">
                 <header>
                     <h1 className="text-gray-900 font-bold text-3xl mb-4">{route.name}</h1>
@@ -24,7 +30,11 @@ export const RouteCard = ({ route }: { route: RouteQueryData }) => {
                         <span className={getDifficultyClass(route.difficulty)}>{route.difficulty}</span>
                     </div>
                 </header>
-                <Link to={`/gym/${route.gym_id}`} className="flex items-center mb-8">
+                <Link
+                    to={`/gym/${route.gym_id}`}
+                    className="flex items-center mb-8"
+                    aria-label={`View details for ${route.gym.name}`}
+                >
                     <MapPinIcon className="w-6 h-6"></MapPinIcon>
                     <span className="text-indigo-700 font-medium">{route.gym.name}</span>
                 </Link>
@@ -33,7 +43,11 @@ export const RouteCard = ({ route }: { route: RouteQueryData }) => {
                         <span className="text-gray-900">Created by: </span>
                         <span className="font-semibold italic">{route.user.username}</span>
                     </div>
-                    <Link className="link-as-btn" to={`/route/${route.id}`}>
+                    <Link
+                        className="link-as-btn"
+                        to={`/route/${route.id}`}
+                        aria-label={`View details for ${route.name}`}
+                    >
                         View route
                     </Link>
                 </main>

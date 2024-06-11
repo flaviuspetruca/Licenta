@@ -4,7 +4,7 @@ import path from "path";
 import { __dirname } from "..";
 import { randomUUID } from "crypto";
 import FormData from "form-data";
-import { verifyGymAdminMiddleWear, verifyGymAdminNonBlock } from "./auth";
+import { verifyGymAdmin, appendGymUserRoleNonBlock, verifyGymEditPermissions } from "./auth";
 import lgr from "../utils/logger";
 import { Request, STATUS_CODES } from "../utils/http";
 import { addFilesToZip, unpackZip } from "../utils/utils";
@@ -100,7 +100,7 @@ router.get("/route/:id", async (req: Request, res: Response) => {
     }
 
     req.params.gym_id = route.gym_id.toString();
-    await verifyGymAdminNonBlock(req, res);
+    await appendGymUserRoleNonBlock(req, res);
     let routeData = await getContainerRouteData(route.dir_id);
     if (!routeData) {
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to fetch route");
@@ -109,9 +109,23 @@ router.get("/route/:id", async (req: Request, res: Response) => {
 
     const positionJson = JSON.parse(routeData.find((file: any) => file.name === "positions.json").content.toString());
     const matrixJson = JSON.parse(routeData.find((file: any) => file.name === "matrix.json").content.toString());
-    routeData = routeData.filter((file: any) => file.name !== "positions.json" && file.name !== "matrix.json");
+    routeData = routeData
+        .filter((file: any) => file.name !== "positions.json" && file.name !== "matrix.json")
+        .sort((a, b) => {
+            const numA = parseInt(a.name, 10);
+            const numB = parseInt(b.name, 10);
 
-    const admin = req.context.gym?.admin;
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return numA - numB;
+            }
+
+            if (!isNaN(numA)) return -1;
+            if (!isNaN(numB)) return 1;
+
+            return a.name.localeCompare(b.name);
+        });
+
+    const userRole = req.context.gym?.userRole;
 
     const generatedData = AudioGenerator.buildAudioData(
         routeData.map((file: any) => file.name),
@@ -120,7 +134,7 @@ router.get("/route/:id", async (req: Request, res: Response) => {
 
     const jsonData = {
         route: route,
-        admin,
+        userRole: userRole,
         matrix: matrixJson,
         positions: positionJson,
         data: generatedData,
@@ -191,7 +205,7 @@ router.get("/routes", async (req: Request, res: Response) => {
 
 router.post(
     "/save-route/:gym_id",
-    verifyGymAdminMiddleWear,
+    verifyGymEditPermissions,
     upload.single("file"),
     uploadMiddleWare,
     async (req: Request, res: Response) => {
@@ -203,6 +217,9 @@ router.post(
         const difficulty = req.body.difficulty;
         const user_id = req.context.user.id;
         const thumbnail = req.context.route_thumbnail;
+
+        //TODO: Validate route data
+
         const route = await saveRoute(routeName, gym_id, user_id, dir_id, difficulty, thumbnail, route_id);
         if (!route) {
             res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to save route");
@@ -212,7 +229,7 @@ router.post(
     }
 );
 
-router.post("/route/:gym_id", verifyGymAdminMiddleWear, validateRoute, async (req: Request, res: Response) => {
+router.post("/route/:gym_id", verifyGymEditPermissions, validateRoute, async (req: Request, res: Response) => {
     const { audioFilesZip, processedPositions } = await processor.processRoute(req.context.route);
     const unpackedZip = await unpackZip(Buffer.from(await audioFilesZip.arrayBuffer()));
 

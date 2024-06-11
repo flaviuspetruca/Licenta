@@ -8,7 +8,7 @@ class UserGyms extends Model {
     name: string;
 }
 
-export type UserGymRole = "ADMIN" | "EDITOR" | "VIEWER";
+export type UserGymRole = "ADMIN" | "EDITOR";
 
 UserGyms.init(
     {

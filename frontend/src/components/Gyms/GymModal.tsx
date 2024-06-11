@@ -5,7 +5,7 @@ import { BACKEND_ENDPOINT } from "../../configs";
 import { fetchFn, buildHttpHeaders } from "../../utils/http";
 import { AlertType, useAlert } from "../UI/AlertProvider";
 
-const roles = ["ADMIN", "EDITOR", "VIEWER"];
+const roles = ["ADMIN", "EDITOR"];
 
 type Props = {
     gym_id: number;

@@ -1,9 +1,10 @@
 import { randomUUID } from "crypto";
 import { NextFunction, Response } from "express";
-import User from "../models/User";
+import User, { UserRole } from "../models/User";
 import { Logger } from "./logger";
 import { Request as ExpressRequest } from "express";
 import { Matrix, Position } from "../configs/types";
+import { UserGymRole } from "../models/UserGyms";
 export type Request = ExpressRequest & { context: RequestContext };
 
 export interface RequestContext {
@@ -11,7 +12,7 @@ export interface RequestContext {
     lgr?: Logger;
     user?: Omit<User, "password">;
     route?: { matrix: Matrix; positions: Position[] };
-    gym?: { admin: boolean };
+    gym?: { userRole: UserGymRole };
     gym_thumbnail?: string;
     route_thumbnail?: string;
 }
@@ -29,7 +30,15 @@ export const logger_middleware = (req: Request, res: Response, next: NextFunctio
     next();
 };
 
-export const WHITELISTED_ROUTES = ["register", "login", "audio", "holds-images", "tmp", "azure"];
+export const WHITELISTED_ROUTES = [
+    "register",
+    "login",
+    "holds-images",
+    "tmp",
+    "azure",
+    "reset-password",
+    "forgot-password",
+];
 
 export const STATUS_CODES = {
     OK: 200,

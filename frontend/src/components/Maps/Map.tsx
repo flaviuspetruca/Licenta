@@ -8,16 +8,18 @@ type Props = {
     width?: string;
     height?: string;
     popupText?: string;
+    changable?: boolean;
 };
 
-const Map = forwardRef(({ lat, lng, width, height, popupText }: Props, ref) => {
+const Map = forwardRef(({ lat, lng, width, height, popupText, changable }: Props, ref) => {
     const [latitude, setLatitude] = useState<number>(44.42696654785884);
     const [longitude, setLongitude] = useState<number>(26.10248226903579);
-    const [markerPosition, setMarkerPosition] = useState<LatLngExpression | null>(null);
+    const [markerPosition, setMarkerPosition] = useState<LatLngExpression>([latitude, longitude]);
 
     const MapClickHandler: React.FC = () => {
         useMapEvents({
             click(e) {
+                if (!changable) return;
                 setMarkerPosition([e.latlng.lat, e.latlng.lng]);
             },
         });

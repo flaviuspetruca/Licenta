@@ -1,5 +1,5 @@
 import pyttsx3
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -9,7 +9,6 @@ import uvicorn
 import os
 import io
 import zipfile
-from gtts import gTTS
 
 from audio_merge import merge_audio_files_with_delay
 
@@ -79,22 +78,6 @@ def text2speech(text: str):
     with open(temp_file, "rb") as f:
         mp3_data = f.read()
     os.remove(temp_file)
-    return mp3_data
-
-
-def text2speech_GTTS(text: str):
-    try:
-        tts = gTTS(text=text, lang="en")
-        temp_file = f"temp_{str(uuid.uuid4())}.mp3"
-        tts.save(temp_file)
-        with open(temp_file, "rb") as f:
-            mp3_data = f.read()
-        os.remove(temp_file)
-    except Exception as e:
-        print(e)
-        raise HTTPException(
-            status_code=500, detail="Error in text to speech conversion"
-        )
     return mp3_data
 
 

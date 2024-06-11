@@ -1,5 +1,5 @@
 .card-image {
-    @apply h-56 lg:h-auto lg:w-56 flex-none bg-cover rounded-t-xl lg:rounded-tr-none lg:rounded-l-xl text-center overflow-hidden;
+    @apply h-56 lg:h-auto lg:w-56  max-w-80 flex-none bg-cover rounded-t-xl lg:rounded-tr-none lg:rounded-l-xl text-center overflow-hidden;
 }
 
 .card-body {

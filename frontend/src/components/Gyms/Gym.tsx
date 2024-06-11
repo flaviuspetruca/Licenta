@@ -50,8 +50,12 @@ const Gym = () => {
             const data = await response.formData();
             const gym = JSON.parse(data.get("json_data") as string);
             const thumbnail = data.get("thumbnail") as Blob;
-            setGym(gym);
+            const route_thumbnails = data.getAll("route_thumbnail");
+            gym.routes.forEach((route: any, index: number) => {
+                route.thumbnail = route_thumbnails[index];
+            });
             imageRef.current!.src = URL.createObjectURL(thumbnail);
+            setGym(gym);
         }
         getGym();
     }, [id, refresh, showAlert]);
@@ -124,17 +128,23 @@ const Gym = () => {
             <LoadingWrapper isLoading={loading} text={gym?.name}>
                 <div className="flex flex-col justify-center items-center w-full">
                     <div className="hero bg-base-200 max-w-128">
-                        <div className="hero-content flex-col items-start justify-between lg:flex-row w-full">
+                        <div
+                            className={`hero-content flex-col ${gym?.userRole ? "items-start justify-between" : "items-center"} lg:flex-row w-full`}
+                        >
                             <img ref={imageRef} alt={`${gym?.name} climbing gym`} className="lg:max-w-114"></img>
-
-                            {gym?.isAdmin && (
-                                <Link to={`/route-creator/${gym?.id}`} className="btn btn-primary">
-                                    Add route
-                                </Link>
-                            )}
+                            <div className="flex flex-col gap-2">
+                                <p className="text-gray-700 text-lg">
+                                    <b>{gym?.nr_routes ?? 0}</b> accessible routes
+                                </p>
+                                {gym?.userRole && (
+                                    <Link to={`/route-creator/${gym?.id}`} className="btn btn-primary">
+                                        Add route
+                                    </Link>
+                                )}
+                            </div>
                         </div>
                     </div>
-                    {gym?.isAdmin && <UsersSection />}
+                    {gym?.userRole === "ADMIN" && <UsersSection />}
                     {gym?.location && (
                         <Map
                             lat={Number(gym?.location.split(",")[0])}

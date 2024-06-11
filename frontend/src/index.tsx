@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
+import "./Platform.scss";
+import "./index.css";
 import ReactDOM from "react-dom/client";
 import { ErrorBoundary } from "react-error-boundary";
 import { RouterProvider, createBrowserRouter, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import "./index.css";
-import "./Platform.scss";
 import NotFound from "./components/NotFound/NotFound";
 import Login from "./components/Authentication/Login";
 import Register from "./components/Authentication/Register";
@@ -19,30 +19,56 @@ import MainPanel from "./components/MainPanel";
 import { UserTypeDB } from "./types";
 import GymRegister from "./components/Gyms/GymRegister";
 import AdminPanel from "./components/AdminPanel/AdminPanel";
+import GymSubmission from "./components/Gyms/GymSubmission";
+import ForgotPassword from "./components/Authentication/ForgotPassword";
+import ResetPassword from "./components/Authentication/ResetPassword";
 
-const NavbarWrapper = () => {
+const useUser = (navigate: ReturnType<typeof useNavigate>, requiredRole?: "admin" | "user") => {
     const [user, setUser] = useState<Omit<UserTypeDB, "password"> | null>(null);
-    const navigate = useNavigate();
-    const path = useLocation().pathname;
 
     useEffect(() => {
-        if (path === "/") {
-            navigate("/routes");
-        }
-
         const token = localStorage.getItem("token");
         if (!token) {
             navigate("/login");
+            return;
         }
 
         const decoded = jwtDecode(token as string);
         if (new Date().getTime() / 1000 > (decoded.exp as number)) {
             localStorage.removeItem("token");
             navigate("/login");
+            return;
         }
+
         delete decoded.exp;
         delete decoded.iat;
-        setUser(decoded as Omit<UserTypeDB, "password">);
+        const newUser = decoded as Omit<UserTypeDB, "password">;
+        setUser(newUser);
+
+        if (requiredRole && newUser.role !== requiredRole) {
+            navigate("/routes");
+        }
+    }, [navigate, requiredRole]);
+
+    return user;
+};
+
+const ProtectedRoute = ({ requiredRole }: { requiredRole: "admin" | "user" }) => {
+    const navigate = useNavigate();
+    const user = useUser(navigate, requiredRole);
+
+    return user?.role === requiredRole ? <Outlet /> : null;
+};
+
+const NavbarWrapper = () => {
+    const navigate = useNavigate();
+    const path = useLocation().pathname;
+    const user = useUser(navigate);
+
+    useEffect(() => {
+        if (path === "/") {
+            navigate("/routes");
+        }
     }, [navigate, path]);
 
     return (
@@ -66,7 +92,16 @@ const router = createBrowserRouter([
             { path: "/gym/:id", element: <Gym /> },
             { path: "/gym-register", element: <GymRegister /> },
             { path: "/route/:id", element: <Route /> },
-            { path: "/admin", element: <AdminPanel /> },
+            {
+                path: "/admin",
+                element: <ProtectedRoute requiredRole="admin" />,
+                children: [{ path: "/admin", element: <AdminPanel /> }],
+            },
+            {
+                path: "/submission/:id",
+                element: <ProtectedRoute requiredRole="admin" />,
+                children: [{ path: "/submission/:id", element: <GymSubmission /> }],
+            },
         ],
         errorElement: <NotFound />,
     },
@@ -83,6 +118,22 @@ const router = createBrowserRouter([
         element: (
             <AlertProvider>
                 <Register />
+            </AlertProvider>
+        ),
+    },
+    {
+        path: "/forgot-password",
+        element: (
+            <AlertProvider>
+                <ForgotPassword />
+            </AlertProvider>
+        ),
+    },
+    {
+        path: "/reset-password",
+        element: (
+            <AlertProvider>
+                <ResetPassword />
             </AlertProvider>
         ),
     },
