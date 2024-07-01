@@ -42,7 +42,7 @@ const uploadMiddleWare = (req: Request, res: Response, next: NextFunction) => {
 router.post("/user-gym/:gym_id", verifyGymAdmin, async (req: Request, res: Response) => {
     const { username, role } = req.body;
     const gym_id = Number(req.params.gym_id);
-    const user = await findUser(username);
+    const user = await findUser({ username });
     if (!user) {
         res.status(STATUS_CODES.BAD_REQUEST).send("Incorrect username");
         return;
@@ -106,11 +106,12 @@ router.get("/gym/:gym_id", appendGymUserRoleNonBlock, async (req: Request, res: 
 });
 
 router.get("/gyms", async (req: Request, res: Response) => {
-    const gyms = await findGyms();
+    let gyms = await findGyms();
     if (!gyms) {
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to fetch gyms");
         return;
     }
+    gyms = gyms.reverse();
     const formData = new FormData();
 
     formData.append("json_data", JSON.stringify(gyms), {
@@ -177,11 +178,12 @@ router.post("/gym-submission", upload.single("file"), uploadMiddleWare, async (r
 });
 
 router.get("/gym-submissions", verifyAdmin, async (req: Request, res: Response) => {
-    const gyms = await findGymSubmissions();
+    let gyms = await findGymSubmissions();
     if (!gyms) {
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to fetch gyms");
         return;
     }
+    gyms = gyms.reverse();
     const formData = new FormData();
 
     formData.append("json_data", JSON.stringify(gyms), {

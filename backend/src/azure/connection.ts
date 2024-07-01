@@ -89,6 +89,11 @@ export const downloadFile = async (containerName: string, blobName: string): Pro
 export const deleteFile = async (containerName: string, blobName: string) => {
     const containerClient = blobServiceClient.getContainerClient(containerName);
     const blobClient = containerClient.getBlockBlobClient(blobName);
-    const resp = await blobClient.delete();
-    return resp._response.status === 200;
+    try {
+        const resp = await blobClient.delete();
+        return resp._response.status === 200;
+    } catch (error) {
+        lgr.ierror(`Error deleting blob "${blobName}":`, error);
+        return false;
+    }
 };

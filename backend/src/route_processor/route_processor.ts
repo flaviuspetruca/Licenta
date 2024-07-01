@@ -98,7 +98,7 @@ class RouteProcessor extends Actor {
     processCoordinates(destinationCoordinates: Coordinates, sourceCoordinates: Coordinates, lowestCoordinate: number) {
         const distance = this.routeComputer.computeDistance(destinationCoordinates, sourceCoordinates);
         if (!distance) {
-            // throw error
+            throw new Error("Distance is too far to compute.");
         }
         const direction = this.routeComputer.computeDirection(destinationCoordinates, sourceCoordinates);
         const heightLevel = this.routeComputer.computeHeightLevel(destinationCoordinates, lowestCoordinate);

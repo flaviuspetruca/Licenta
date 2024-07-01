@@ -12,12 +12,12 @@ import Map from "../Maps/Map";
 
 const Gym = () => {
     const [gym, setGym] = useState<GymQueryData | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [loading, setLoading] = useState(true);
     const imageRef = useRef<HTMLImageElement>(null);
     const { id } = useParams();
     const { showAlert } = useAlert();
-    const ref = useRef<{ openModal: () => void }>();
 
     const handleRelationRemove = async (user_id: number) => {
         if (!id) {
@@ -60,15 +60,23 @@ const Gym = () => {
         getGym();
     }, [id, refresh, showAlert]);
 
+    const handleModalOpen = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+    };
+
     const UsersSection = () => {
         return (
             <section className="border-2 rounded-xl p-10 mt-5 w-full max-w-128">
                 <div className="flex justify-between items-center">
                     <div className="px-4 sm:px-0">
-                        <h3 className="text-xl font-semibold leading-7 text-gray-900">Gym User Permisions</h3>
+                        <h3 className="text-xl font-semibold leading-7 text-gray-900">Gym User Permissions</h3>
                         <p className="mt-1 max-w-2xl text-md leading-6 text-gray-500">Username and role</p>
                     </div>
-                    <button className="btn btn-info text-white" onClick={ref.current?.openModal}>
+                    <button className="btn btn-info text-white" onClick={handleModalOpen}>
                         Add user
                     </button>
                 </div>
@@ -124,7 +132,13 @@ const Gym = () => {
 
     return (
         <>
-            <GymModal ref={ref} gym_id={Number(id)} refresh={refresh} setRefresh={setRefresh} />
+            <GymModal
+                gym_id={Number(id)}
+                refresh={refresh}
+                setRefresh={setRefresh}
+                open={isModalOpen}
+                onClose={handleModalClose}
+            />
             <LoadingWrapper isLoading={loading} text={gym?.name}>
                 <div className="flex flex-col justify-center items-center w-full">
                     <div className="hero bg-base-200 max-w-128">

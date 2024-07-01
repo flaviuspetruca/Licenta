@@ -70,7 +70,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const [difficulty, setDifficulty] = useState<string>(difficultyLevels[0]);
     const [picture, setPicture] = useState<File | null>(null);
 
-    const _emptyMatrix = useMemo(() => {
+    const _emptyMatrix = useCallback(() => {
         const initialMatrix = [];
         for (let i = 0; i < numRows; i++) {
             const row = [];
@@ -80,7 +80,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
             initialMatrix.push(row);
         }
         return initialMatrix;
-    }, [numCols, numRows]);
+    }, [numRows, numCols]);
 
     const _notSetCoordinates = useMemo(() => {
         return { x: -1, y: -1 };
@@ -95,7 +95,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
         };
     }, [_notSetCoordinates]);
 
-    const [matrix, setMatrix] = useState<Matrix>(_emptyMatrix);
+    const [matrix, setMatrix] = useState<Matrix>(_emptyMatrix());
     const [currentPosition, setCurrentPosition] = useState<Position>(_emptyNewPosition);
     const [debugRoute, setDebugRoute] = useState<Boolean>(false);
 
@@ -178,7 +178,9 @@ const TableRoute = forwardRef((props: Props, ref) => {
         const col = e.currentTarget.cellIndex;
 
         matrix[row][col] = parsedData;
-        setMatrix([...matrix]);
+        const newMatrix = [...matrix];
+        newMatrix[row][col] = parsedData;
+        setMatrix(newMatrix);
     };
 
     // Remove the hold from the route either by dragging it to the trash area or by double clicking it
@@ -189,8 +191,11 @@ const TableRoute = forwardRef((props: Props, ref) => {
         const parsedJson: { rowIndex: number; colIndex: number } = JSON.parse(data);
         const rowIndex = parsedJson.rowIndex;
         const colIndex = parsedJson.colIndex;
-        matrix[rowIndex][colIndex] = null;
-        setMatrix([...matrix]);
+        setMatrix((oldMat) => {
+            const newMat = [...oldMat];
+            newMat[rowIndex][colIndex] = null;
+            return newMat;
+        });
     };
 
     const handleRemoveClick = (e: React.MouseEvent<HTMLTableCellElement>) => {
@@ -201,7 +206,11 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
         // Update holds matrix
         matrix[rowIndex][colIndex] = null;
-        setMatrix([...matrix]);
+        setMatrix((oldMat) => {
+            const newMat = [...oldMat];
+            newMat[rowIndex][colIndex] = null;
+            return newMat;
+        });
     };
 
     const handleActionSubmit = () => {
@@ -414,7 +423,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
     const resetPanel = useCallback(() => {
         resetSettingPositions();
         setAudioData(undefined);
-        setMatrix([..._emptyMatrix]);
+        setMatrix(_emptyMatrix());
         setIsSettingPositions(false);
         setGenerated(false);
     }, [_emptyMatrix, resetSettingPositions, setAudioData]);
@@ -441,6 +450,7 @@ const TableRoute = forwardRef((props: Props, ref) => {
 
     useEffect(() => {
         async function getRoute() {
+            console.log("getting route");
             const queryParams = new URLSearchParams(location.search);
             const route_id = queryParams.get("route_id");
 
@@ -457,7 +467,10 @@ const TableRoute = forwardRef((props: Props, ref) => {
                 return;
             }
             handleEdit();
-            setMatrix([...routeData.matrix]);
+            const newMatrix = routeData.matrix;
+            setMatrix(() => {
+                return newMatrix;
+            });
             handleSetRetrievedPositions([...routeData.positions]);
             setRouteName(routeData.route.name);
             setDifficulty(routeData.route.difficulty);

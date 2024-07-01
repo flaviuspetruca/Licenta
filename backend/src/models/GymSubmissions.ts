@@ -61,20 +61,35 @@ const insertGymSubmission = async (name: string, location: string, thumbnail: st
 };
 
 const findGymSubmissions = async () => {
-    const gyms = await GymSubmission.findAll();
-    return gyms;
+    try {
+        const gyms = await GymSubmission.findAll();
+        return gyms;
+    } catch (error) {
+        lgr.ierror("Error fetching gyms", error);
+        return null;
+    }
 };
 
 const findGymSubmission = async ({ id }: { id?: number }) => {
-    const gym = await GymSubmission.findOne({
-        where: { id },
-    });
-    return gym;
+    try {
+        const gym = await GymSubmission.findOne({
+            where: { id },
+        });
+        return gym;
+    } catch (error) {
+        lgr.ierror("Error fetching gym", error);
+        return null;
+    }
 };
 
 const updateGymSubmission = async (id: number, status: string) => {
-    const gym = await GymSubmission.update({ status }, { where: { id } });
-    return gym;
+    try {
+        const gym = await GymSubmission.update({ status }, { where: { id } });
+        return gym;
+    } catch (error) {
+        lgr.ierror("Error updating gym", error);
+        return null;
+    }
 };
 
 export default GymSubmission;

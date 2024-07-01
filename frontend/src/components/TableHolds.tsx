@@ -20,9 +20,7 @@ const TableHolds = ({ numRows, numCols, holds, transition }: Props) => {
             const row = [];
             for (let j = 0; j < numCols; j++) {
                 const hold_id = `texture_${numCols * i + j}`;
-                console.log(hold_id);
                 const hold = holds.find((hold) => hold.image_name === hold_id);
-                console.log(holds);
                 if (hold) {
                     const hold_image_format = `${hold?.image_format}`;
                     row.push(

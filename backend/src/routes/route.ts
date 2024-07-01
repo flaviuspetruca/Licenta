@@ -178,12 +178,13 @@ router.get("/route/:id", async (req: Request, res: Response) => {
 });
 
 router.get("/routes", async (req: Request, res: Response) => {
-    const routes = await findRoutes();
+    let routes = await findRoutes();
     if (!routes) {
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to fetch routes");
         return;
     }
 
+    routes = routes.reverse();
     const formData = new FormData();
 
     formData.append("json_data", JSON.stringify(routes), {
@@ -230,59 +231,67 @@ router.post(
 );
 
 router.post("/route/:gym_id", verifyGymEditPermissions, validateRoute, async (req: Request, res: Response) => {
-    const { audioFilesZip, processedPositions } = await processor.processRoute(req.context.route);
-    const unpackedZip = await unpackZip(Buffer.from(await audioFilesZip.arrayBuffer()));
+    try {
+        const { audioFilesZip, processedPositions } = await processor.processRoute(req.context.route);
+        const unpackedZip = await unpackZip(Buffer.from(await audioFilesZip.arrayBuffer()));
 
-    const generatedData = AudioGenerator.buildAudioData(
-        unpackedZip.map((file: any) => file.name),
-        processedPositions
-    );
+        const generatedData = AudioGenerator.buildAudioData(
+            unpackedZip.map((file: any) => file.name),
+            processedPositions
+        );
 
-    const matrixBlobData = { name: "matrix.json", content: Buffer.from(JSON.stringify(req.context.route.matrix)) };
-    const positionsBlobData = {
-        name: "positions.json",
-        content: Buffer.from(JSON.stringify(req.context.route.positions)),
-    };
-    const updatedZip = await addFilesToZip(audioFilesZip, [matrixBlobData, positionsBlobData]);
-    if (!updatedZip) {
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to add data to zip");
-        return;
-    }
-    const uuid = randomUUID();
-    const uploaded = await uploadFile(AZURE_TMP, updatedZip, `${uuid}/${uuid}.zip`);
-    if (!uploaded) {
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to upload zip data");
-        return;
-    }
+        const matrixBlobData = { name: "matrix.json", content: Buffer.from(JSON.stringify(req.context.route.matrix)) };
+        const positionsBlobData = {
+            name: "positions.json",
+            content: Buffer.from(JSON.stringify(req.context.route.positions)),
+        };
+        const updatedZip = await addFilesToZip(audioFilesZip, [matrixBlobData, positionsBlobData]);
+        if (!updatedZip) {
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to add data to zip");
+            return;
+        }
+        const uuid = randomUUID();
+        const uploaded = await uploadFile(AZURE_TMP, updatedZip, `${uuid}/${uuid}.zip`);
+        if (!uploaded) {
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Failed to upload zip data");
+            return;
+        }
 
-    const formData = new FormData();
+        const formData = new FormData();
 
-    formData.append("json_data", JSON.stringify({ path: uuid, data: generatedData }), {
-        contentType: "application/json",
-    });
+        formData.append("json_data", JSON.stringify({ path: uuid, data: generatedData }), {
+            contentType: "application/json",
+        });
 
-    unpackedZip.forEach((file: any) => {
-        formData.append("audio_blob", file.content, {
-            filename: file.name,
+        unpackedZip.forEach((file: any) => {
+            formData.append("audio_blob", file.content, {
+                filename: file.name,
+                contentType: "application/octet-stream",
+            });
+        });
+
+        const endAudio = readFileSync(path.join(__dirname, AUDIO_PATH, END_AUDIO));
+        const nextAudio = readFileSync(path.join(__dirname, AUDIO_PATH, NEXT_POSITION_AUDIO));
+        formData.append("audio_blob", endAudio, {
+            filename: END_AUDIO,
             contentType: "application/octet-stream",
         });
-    });
 
-    const endAudio = readFileSync(path.join(__dirname, AUDIO_PATH, END_AUDIO));
-    const nextAudio = readFileSync(path.join(__dirname, AUDIO_PATH, NEXT_POSITION_AUDIO));
-    formData.append("audio_blob", endAudio, {
-        filename: END_AUDIO,
-        contentType: "application/octet-stream",
-    });
+        formData.append("audio_blob", nextAudio, {
+            filename: NEXT_POSITION_AUDIO,
+            contentType: "application/octet-stream",
+        });
 
-    formData.append("audio_blob", nextAudio, {
-        filename: NEXT_POSITION_AUDIO,
-        contentType: "application/octet-stream",
-    });
+        res.set("Content-Type", "multipart/form-data; boundary=" + formData.getBoundary());
 
-    res.set("Content-Type", "multipart/form-data; boundary=" + formData.getBoundary());
-
-    formData.pipe(res);
+        formData.pipe(res);
+    } catch (error) {
+        lgr.error("Error processing route:", error);
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send(
+            "Failed to process route. Please try choosing closer holds."
+        );
+        return;
+    }
 });
 
 export default router;

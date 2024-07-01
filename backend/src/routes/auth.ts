@@ -69,7 +69,7 @@ router.post("/register", async (req: Request, res: Response) => {
 
 router.post("/login", async (req: Request, res: Response) => {
     const { username, password } = req.body;
-    const user = await findUser(username);
+    const user = await findUser({ username });
     if (!user || !(await comparePassword(password, user.password))) {
         res.status(STATUS_CODES.UNAUTHORIZED).send("Invalid credentials");
         return;
@@ -81,7 +81,8 @@ router.post("/login", async (req: Request, res: Response) => {
 
 router.post("/forgot-password", async (req: Request, res: Response) => {
     const { email } = req.body;
-    const user = await User.findOne({ where: { email } });
+
+    const user = await findUser({ email });
     if (!user) {
         res.status(STATUS_CODES.NOT_FOUND).send("User not found");
         return;
@@ -116,7 +117,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
         return;
     }
     const decodedUser = decoded as User;
-    const user = await findUser(decodedUser.username);
+    const user = await findUser({ username: decodedUser.username });
     if (!user) {
         res.status(STATUS_CODES.NOT_FOUND).send("User not found");
         return;

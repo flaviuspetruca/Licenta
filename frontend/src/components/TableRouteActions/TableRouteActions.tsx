@@ -110,9 +110,9 @@ const TableRouteActions = ({
                     )}
                 </button>
             )}
-            <button className="btn interactable-container text-red-500 font-bold" onClick={handleSetDebugRoute}>
+            {/* <button className="btn interactable-container text-red-500 font-bold" onClick={handleSetDebugRoute}>
                 DEBUG
-            </button>
+            </button> */}
             <div
                 className="btn interactable-container flex justify-center"
                 onDrop={handleRemoveDrop}

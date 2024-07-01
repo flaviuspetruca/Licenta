@@ -1,6 +1,6 @@
 import { Listbox, ListboxButton, ListboxOption, Transition } from "@headlessui/react";
 import { ChevronUpDownIcon, CheckIcon } from "@heroicons/react/24/outline";
-import { useRef, forwardRef, useState, useImperativeHandle, Fragment, FormEvent } from "react";
+import { useRef, forwardRef, useState, useImperativeHandle, Fragment, FormEvent, useEffect } from "react";
 import { BACKEND_ENDPOINT } from "../../configs";
 import { fetchFn, buildHttpHeaders } from "../../utils/http";
 import { AlertType, useAlert } from "../UI/AlertProvider";
@@ -11,9 +11,11 @@ type Props = {
     gym_id: number;
     refresh: boolean;
     setRefresh: React.Dispatch<React.SetStateAction<boolean>>;
+    open: boolean;
+    onClose: () => void;
 };
 
-export const GymModal = forwardRef(({ gym_id, refresh, setRefresh }: Props, ref) => {
+export const GymModal = forwardRef(({ gym_id, refresh, setRefresh, open, onClose }: Props, ref) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [username, setUsername] = useState("");
     const [role, setRole] = useState(roles[0]);
@@ -46,9 +48,35 @@ export const GymModal = forwardRef(({ gym_id, refresh, setRefresh }: Props, ref)
         openModal: () => {
             dialogRef.current?.showModal();
         },
+        isOpened: dialogRef.current?.open,
     }));
+
+    useEffect(() => {
+        if (open) {
+            dialogRef.current?.showModal();
+        }
+    }, [open]);
+
+    useEffect(() => {
+        if (dialogRef.current) {
+            dialogRef.current.addEventListener("close", onClose);
+        }
+    }, [dialogRef, onClose]);
+
     return (
-        <dialog ref={dialogRef} className="modal">
+        <dialog
+            ref={dialogRef}
+            className="modal"
+            style={{
+                visibility: open ? "visible" : "hidden",
+                position: "absolute",
+                left: "0",
+                top: "0",
+                width: "100%",
+                height: "100%",
+                zIndex: open ? "1" : "-1",
+            }}
+        >
             <div className="flex flex-col gap-2 modal-box">
                 <h3 className="text-2xl font-bold">Add permissions</h3>
                 <div className="p-5 mt-2">

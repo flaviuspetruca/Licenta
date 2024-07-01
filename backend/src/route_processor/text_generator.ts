@@ -11,9 +11,7 @@ export class TextGenerator extends Actor {
             const texts = [];
             for (const [key, info] of Object.entries(position)) {
                 const member = key as Member;
-                if (info.isDifferent) {
-                    texts.push(this.generateMemberText(member, info, i === 0));
-                }
+                texts.push(this.generateMemberText(member, info, i === 0));
             }
             return texts;
         });

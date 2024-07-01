@@ -77,6 +77,10 @@ const Player = ({ audioData, setRouteHighlight, transition }: Props) => {
             const newAudioIndex = isNext ? currentAudioIndex + 1 : currentAudioIndex - 1;
             setCurrentAudioIndex(newAudioIndex);
         }
+
+        if (isAtEnd) {
+            setShouldPlay(false);
+        }
     };
 
     const handleNextAudio = () => handleAudioChange("next");

@@ -74,9 +74,17 @@ const insertUser = async (
     }
 };
 
-const findUser = async (username: string) => {
+const findUser = async ({ username, email }: { username?: string; email?: string }) => {
+    let where = {};
+    if (username) {
+        where = { username };
+    } else if (email) {
+        where = { email };
+    } else {
+        return null;
+    }
     try {
-        const user = await User.findOne({ where: { username } });
+        const user = await User.findOne({ where });
         return user;
     } catch (error) {
         lgr.ierror("Error finding user:", error);

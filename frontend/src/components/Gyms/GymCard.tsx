@@ -58,7 +58,7 @@ export const GymCard = ({ gym, type }: { gym: GymQueryData; type: GymCardType })
                             <span className="font-semibold italic">{gym.users[0].username}</span>
                         </div>
                     )}
-                    <Link className="link-as-btn" aria-label={`View details for ${gym.name}`} to={urlPath}>
+                    <Link className="link-as-btn" aria-label={`View details for`} to={urlPath}>
                         View gym
                     </Link>
                 </main>

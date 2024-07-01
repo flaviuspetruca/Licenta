@@ -28,6 +28,11 @@ const setupMiddleware = (app: express.Application) => {
     app.use("/", gym);
     app.use("/", route);
     app.use("/holds-images", express.static(path.join(__dirname, IMAGE_HOLDS_PATH)));
+
+    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        console.error(err.stack);
+        res.status(500).send("Something broke!");
+    });
 };
 
 export default setupMiddleware;
